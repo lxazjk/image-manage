@@ -9,8 +9,8 @@ from functools import wraps
 from flask import request, g, jsonify
 from werkzeug.security import generate_password_hash, check_password_hash
 
-from .config import Config
-from .database import get_db, User
+from config import Config
+from database import get_db, User
 
 class AuthManager:
     """认证管理器"""

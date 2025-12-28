@@ -11,7 +11,7 @@ import requests
 from PIL import Image
 import io
 
-from .config import Config
+from config import Config
 
 class QwenVLClient:
     """Qwen VL API客户端"""

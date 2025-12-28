@@ -5,7 +5,7 @@
 from flask import request, g, jsonify
 from sqlalchemy.exc import IntegrityError
 
-from ..database import get_db, Tag, Image
+from database import get_db, Tag, Image
 
 def get_tags():
     """获取所有标签"""

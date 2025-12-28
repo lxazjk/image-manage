@@ -6,8 +6,8 @@ import re
 from flask import request, g, jsonify
 from sqlalchemy.exc import IntegrityError
 
-from ..database import get_db, User
-from ..auth import AuthManager
+from database import get_db, User
+from auth import AuthManager
 
 def login():
     """用户登录"""

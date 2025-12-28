@@ -10,7 +10,7 @@ from sqlalchemy.orm import sessionmaker, relationship, scoped_session
 from sqlalchemy.pool import StaticPool
 from typing import Optional, List
 
-from .config import Config
+from config import Config
 
 Base = declarative_base()
 

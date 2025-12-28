@@ -4,7 +4,7 @@
 
 from flask import request, g, jsonify
 
-from ..database import get_db, User
+from database import get_db, User
 
 def get_users():
     """获取用户列表（管理员功能）"""

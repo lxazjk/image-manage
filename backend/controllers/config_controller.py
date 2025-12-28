@@ -4,8 +4,8 @@
 
 from flask import request, g, jsonify
 
-from ..config import Config
-from ..qwen_client import QwenVLClient
+from config import Config
+from qwen_client import QwenVLClient
 
 def get_config():
     """获取配置（管理员功能）"""

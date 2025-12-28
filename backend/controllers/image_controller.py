@@ -8,14 +8,14 @@ from flask import request, g, jsonify
 from PIL import Image as PILImage
 from werkzeug.utils import secure_filename
 
-from ..database import get_db, Image, Tag, ImageEdit
-from ..utils import (
+from database import get_db, Image, Tag, ImageEdit
+from utils import (
     generate_random_hash, get_image_info, extract_exif_data,
     generate_thumbnail, save_uploaded_file, get_storage_path,
     get_backup_path, validate_image_file
 )
-from ..config import Config
-from ..qwen_client import QwenVLClient
+from config import Config
+from qwen_client import QwenVLClient
 
 def upload_images():
     """上传图片"""

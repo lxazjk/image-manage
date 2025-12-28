@@ -8,15 +8,25 @@ import connexion
 from flask import Flask
 from flask_cors import CORS
 
-from .database import init_db
-from .config import Config
-from .auth import init_auth_manager
-from .controllers import auth_controller, user_controller, image_controller, tag_controller, config_controller
+from database import init_db
+from config import Config
+from auth import init_auth_manager
+from controllers import auth_controller, user_controller, image_controller, tag_controller, config_controller
 
-def create_app(config_file='../config.yaml'):
+def create_app(config_file=None):
     """创建Flask应用实例"""
 
     # 加载配置
+    if config_file is None:
+        # 尝试自动找到配置文件
+        import os
+        if os.path.exists('../config.yaml'):
+            config_file = '../config.yaml'
+        elif os.path.exists('config.yaml'):
+            config_file = 'config.yaml'
+        else:
+            config_file = '../config.yaml'  # 默认值
+
     config = Config(config_file)
 
     # 创建Connexion应用
@@ -79,5 +89,11 @@ def create_app(config_file='../config.yaml'):
     return app
 
 if __name__ == '__main__':
+    # 添加backend目录到Python路径，使相对导入工作
+    import sys
+    import os
+    backend_dir = os.path.dirname(os.path.abspath(__file__))
+    sys.path.insert(0, backend_dir)
+
     app = create_app()
     app.run(host='0.0.0.0', port=8080, debug=True)
