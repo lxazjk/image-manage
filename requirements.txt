@@ -3,13 +3,10 @@ flask
 flask-cors
 sqlalchemy
 flask-sqlalchemy
-pymysql
-python-multipart
 pillow
 pyyaml
 bcrypt
 pyjwt
-werkzeug
 exifread
 opencv-python
 numpy
