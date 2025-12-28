@@ -1,0 +1,535 @@
+openapi: 3.0.3
+info:
+  title: 图片管理系统API
+  version: 1.0.0
+  description: 图片管理系统的REST API
+
+servers:
+  - url: http://localhost:8080/api/v1
+
+paths:
+  /auth/login:
+    post:
+      summary: 用户登录
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - username
+                - password
+              properties:
+                username:
+                  type: string
+                password:
+                  type: string
+      responses:
+        '200':
+          description: 登录成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                  user:
+                    $ref: '#/components/schemas/User'
+        '401':
+          description: 登录失败
+
+  /auth/register:
+    post:
+      summary: 用户注册
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - username
+                - email
+                - password
+              properties:
+                username:
+                  type: string
+                  minLength: 3
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+                  minLength: 6
+      responses:
+        '201':
+          description: 注册成功
+        '400':
+          description: 注册失败
+
+  /users:
+    get:
+      summary: 获取用户列表（管理员）
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: 用户列表
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'
+
+  /users/{user_id}/approve:
+    post:
+      summary: 审批用户注册（管理员）
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 审批成功
+
+  /users/{user_id}/role:
+    put:
+      summary: 修改用户角色（管理员）
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - role
+              properties:
+                role:
+                  type: string
+                  enum: [user, admin]
+      responses:
+        '200':
+          description: 修改成功
+
+  /images/upload:
+    post:
+      summary: 上传图片
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                files:
+                  type: array
+                  items:
+                    type: string
+                    format: binary
+                  description: 图片文件（支持多文件上传）
+      responses:
+        '201':
+          description: 上传成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  uploaded:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Image'
+                  failed:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        filename:
+                          type: string
+                        error:
+                          type: string
+
+  /images:
+    get:
+      summary: 获取图片列表
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: tag
+          in: query
+          schema:
+            type: string
+        - name: search
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 图片列表
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  images:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Image'
+                  total:
+                    type: integer
+                  page:
+                    type: integer
+                  pages:
+                    type: integer
+
+  /images/{image_id}:
+    get:
+      summary: 获取图片详情
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: image_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 图片详情
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ImageDetail'
+
+  /images/{image_id}/edit:
+    post:
+      summary: 编辑图片
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: image_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                operation:
+                  type: string
+                  enum: [crop, adjust_color]
+                params:
+                  type: object
+                  properties:
+                    crop_top:
+                      type: number
+                      minimum: 0
+                      maximum: 100
+                    crop_bottom:
+                      type: number
+                      minimum: 0
+                      maximum: 100
+                    crop_left:
+                      type: number
+                      minimum: 0
+                      maximum: 100
+                    crop_right:
+                      type: number
+                      minimum: 0
+                      maximum: 100
+                    brightness:
+                      type: number
+                      minimum: -100
+                      maximum: 100
+                    contrast:
+                      type: number
+                      minimum: -100
+                      maximum: 100
+      responses:
+        '200':
+          description: 编辑成功
+
+  /images/{image_id}/delete:
+    post:
+      summary: 删除图片（软删除）
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: image_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 删除成功
+
+  /images/{image_id}/restore:
+    post:
+      summary: 恢复图片
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: image_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 恢复成功
+
+  /tags:
+    get:
+      summary: 获取所有标签
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: 标签列表
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Tag'
+
+    post:
+      summary: 创建标签
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+              properties:
+                name:
+                  type: string
+      responses:
+        '201':
+          description: 创建成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Tag'
+
+  /images/{image_id}/tags:
+    post:
+      summary: 为图片添加标签
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: image_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - tag_ids
+              properties:
+                tag_ids:
+                  type: array
+                  items:
+                    type: integer
+      responses:
+        '200':
+          description: 添加成功
+
+    delete:
+      summary: 从图片移除标签
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: image_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - tag_ids
+              properties:
+                tag_ids:
+                  type: array
+                  items:
+                    type: integer
+      responses:
+        '200':
+          description: 移除成功
+
+  /config:
+    get:
+      summary: 获取配置（管理员）
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: 配置信息
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  site:
+                    type: object
+                    properties:
+                      name:
+                        type: string
+                      favicon:
+                        type: string
+                  storage:
+                    type: object
+                    properties:
+                      allowed_extensions:
+                        type: string
+
+    put:
+      summary: 更新配置（管理员）
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                site:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                    favicon:
+                      type: string
+                storage:
+                  type: object
+                  properties:
+                    allowed_extensions:
+                      type: string
+      responses:
+        '200':
+          description: 更新成功
+
+components:
+  schemas:
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+        username:
+          type: string
+        email:
+          type: string
+        role:
+          type: string
+          enum: [pending, user, admin]
+        created_at:
+          type: string
+          format: date-time
+
+    Image:
+      type: object
+      properties:
+        id:
+          type: integer
+        filename:
+          type: string
+        file_path:
+          type: string
+        file_size:
+          type: integer
+        width:
+          type: integer
+          nullable: true
+        height:
+          type: integer
+          nullable: true
+        taken_at:
+          type: string
+          format: date-time
+          nullable: true
+        thumbnail:
+          type: string
+        tags:
+          type: array
+          items:
+            $ref: '#/components/schemas/Tag'
+        created_at:
+          type: string
+          format: date-time
+
+    ImageDetail:
+      allOf:
+        - $ref: '#/components/schemas/Image'
+        - type: object
+          properties:
+            location_lat:
+              type: number
+              nullable: true
+            location_lng:
+              type: number
+              nullable: true
+            location_name:
+              type: string
+              nullable: true
+            mime_type:
+              type: string
+
+    Tag:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
