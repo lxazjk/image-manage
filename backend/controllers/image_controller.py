@@ -4,6 +4,7 @@
 
 import os
 import json
+import logging
 from flask import request, g, jsonify
 from PIL import Image as PILImage
 from werkzeug.utils import secure_filename
@@ -16,6 +17,8 @@ from utils import (
 )
 from config import Config
 from qwen_client import QwenVLClient
+
+logger = logging.getLogger(__name__)
 
 def upload_images():
     """上传图片"""
@@ -86,28 +89,41 @@ def upload_images():
 
                 # 尝试生成AI标签
                 ai_tags = []
+                ai_tag_error = None
                 try:
                     qwen_client = QwenVLClient(config)
                     if qwen_client.is_enabled():
-                        print(f"为图片 {filename} 生成AI标签...")
+                        logger.info(f"为图片 {filename} 生成AI标签...")
                         ai_tags = qwen_client.analyze_image(storage_path)
-                        print(f"生成了 {len(ai_tags)} 个AI标签: {ai_tags}")
+                        logger.info(f"成功生成了 {len(ai_tags)} 个AI标签: {ai_tags}")
 
                         # 保存AI生成的标签
                         for tag_name in ai_tags:
-                            # 检查标签是否已存在
-                            tag = session.query(Tag).filter_by(name=tag_name).first()
-                            if not tag:
-                                tag = Tag(name=tag_name)
-                                session.add(tag)
-                                session.flush()
+                            try:
+                                # 检查标签是否已存在
+                                tag = session.query(Tag).filter_by(name=tag_name).first()
+                                if not tag:
+                                    tag = Tag(name=tag_name)
+                                    session.add(tag)
+                                    session.flush()
 
-                            # 关联标签和图片
-                            if tag not in image.tags:
-                                image.tags.append(tag)
-
+                                # 关联标签和图片
+                                if tag not in image.tags:
+                                    image.tags.append(tag)
+                                    logger.info(f"为图片 {filename} 添加标签: {tag_name}")
+                            except Exception as tag_error:
+                                logger.error(f"保存标签 '{tag_name}' 失败: {tag_error}")
+                                # 继续处理其他标签
+                    else:
+                        logger.info(f"Qwen功能未启用，跳过图片 {filename} 的AI标签生成")
+                except ValueError as e:
+                    # 配置错误（如API Key未配置）
+                    ai_tag_error = f"配置错误: {str(e)}"
+                    logger.warning(f"AI标签生成配置错误: {e}")
                 except Exception as e:
-                    print(f"AI标签生成失败: {e}")
+                    # 其他错误（网络错误、API错误等）
+                    ai_tag_error = f"生成失败: {str(e)}"
+                    logger.error(f"AI标签生成失败: {e}", exc_info=True)
                     # 不影响图片上传，只记录警告
 
                 uploaded.append({
@@ -119,6 +135,7 @@ def upload_images():
                     'height': image_info['height'],
                     'taken_at': image.taken_at.isoformat() if image.taken_at else None,
                     'ai_tags': ai_tags,  # 添加AI生成的标签信息
+                    'ai_tag_error': ai_tag_error,  # 添加错误信息（如果有）
                     'thumbnail': thumbnail,
                     'created_at': image.created_at.isoformat()
                 })

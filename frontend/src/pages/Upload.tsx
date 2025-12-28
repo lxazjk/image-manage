@@ -24,6 +24,8 @@ interface UploadResult {
   file_size: number
   thumbnail: string
   created_at: string
+  ai_tags?: string[]
+  ai_tag_error?: string
 }
 
 interface UploadError {
@@ -315,18 +317,52 @@ const Upload: React.FC = () => {
           <Typography variant="h6" gutterBottom color="success.main">
             上传成功 ({results.uploaded.length})
           </Typography>
-          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+          <List>
             {results.uploaded.map((result) => (
-              <Chip
-                key={result.id}
-                label={result.filename}
-                onClick={() => copyImageLink(result)}
-                icon={<Link />}
-                variant="outlined"
-                color="success"
-              />
+              <ListItem key={result.id} sx={{ flexDirection: 'column', alignItems: 'flex-start', pb: 2 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, width: '100%', mb: 1 }}>
+                  <Chip
+                    label={result.filename}
+                    onClick={() => copyImageLink(result)}
+                    icon={<Link />}
+                    variant="outlined"
+                    color="success"
+                  />
+                  {result.ai_tags && result.ai_tags.length > 0 && (
+                    <Chip
+                      label={`AI标签: ${result.ai_tags.join(', ')}`}
+                      size="small"
+                      color="primary"
+                      variant="filled"
+                    />
+                  )}
+                  {result.ai_tag_error && (
+                    <Chip
+                      label={`AI标签生成失败`}
+                      size="small"
+                      color="warning"
+                      variant="outlined"
+                      title={result.ai_tag_error}
+                    />
+                  )}
+                </Box>
+                {result.ai_tags && result.ai_tags.length > 0 && (
+                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mt: 0.5 }}>
+                    {result.ai_tags.map((tag, index) => (
+                      <Chip
+                        key={index}
+                        label={tag}
+                        size="small"
+                        color="primary"
+                        variant="outlined"
+                        sx={{ fontSize: '0.7rem' }}
+                      />
+                    ))}
+                  </Box>
+                )}
+              </ListItem>
             ))}
-          </Box>
+          </List>
         </Paper>
       )}
 
