@@ -1,0 +1,45 @@
+# 图片管理网站配置文件
+
+# 数据库配置
+database:
+  type: mysql  # sqlite 或 mysql
+  sqlite:
+    path: ./data/image_manager.db
+  mysql:
+    host: db
+    port: 3306
+    database: image_manager
+    username: appuser
+    password: apppassword
+
+# 图片存储配置
+storage:
+  base_path: ./uploads  # 图片存储基础路径
+  backup_path: ./backups  # 备份路径
+  allowed_extensions: "jpg,png,gif,jpeg,bmp,webp"  # 允许上传的文件扩展名，用逗号分隔
+  thumbnail_size: 300  # 缩略图最大尺寸（像素）
+
+# 分页配置
+pagination:
+  page_size: 20  # 每页显示的图片数量
+
+# 站点配置
+site:
+  name: "图片管理系统"
+  favicon: "/favicon.ico"
+
+# JWT配置
+jwt:
+  secret_key: "your-secret-key-change-in-production"
+  algorithm: "HS256"
+  expiration_hours: 24
+
+# Qwen VL API配置
+qwen:
+  enabled: false  # 是否启用自动标签生成
+  api_key: ""  # API Key
+  base_url: "https://dashscope.aliyuncs.com/api/v1/"  # API基础URL
+  model: "qwen-vl-max"  # 模型名称
+  max_retries: 3  # 最大重试次数
+  timeout: 30  # 请求超时时间（秒）
+  max_tags: 5  # 每个图片最多生成多少个标签
