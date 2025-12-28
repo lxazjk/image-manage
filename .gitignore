@@ -60,5 +60,12 @@ Thumbs.db
 # Logs
 *.log
 
+# Docker
+.docker/
+
+# Temporary files
+create_admin.py
+*.tmp
+
 
 

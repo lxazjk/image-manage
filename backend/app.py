@@ -20,12 +20,14 @@ def create_app(config_file=None):
     if config_file is None:
         # 尝试自动找到配置文件
         import os
-        if os.path.exists('../config.yaml'):
-            config_file = '../config.yaml'
+        if os.path.exists('/app/config.yaml'):
+            config_file = '/app/config.yaml'
         elif os.path.exists('config.yaml'):
             config_file = 'config.yaml'
+        elif os.path.exists('../config.yaml'):
+            config_file = '../config.yaml'
         else:
-            config_file = '../config.yaml'  # 默认值
+            config_file = 'config.yaml'  # 默认值
 
     config = Config(config_file)
 

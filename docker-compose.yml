@@ -1,4 +1,21 @@
 services:
+  # MySQL数据库服务
+  db:
+    image: mysql:8.0
+    container_name: image-manager-db
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: image_manager
+      MYSQL_USER: appuser
+      MYSQL_PASSWORD: apppassword
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - image-manager-network
+    ports:
+      - "3306:3306"
+
   # 后端服务
   backend:
     build:
@@ -6,6 +23,8 @@ services:
       dockerfile: Dockerfile.backend
     container_name: image-manager-backend
     restart: unless-stopped
+    depends_on:
+      - db
     ports:
       - "8080:8080"
     volumes:
@@ -38,3 +57,6 @@ services:
 networks:
   image-manager-network:
     driver: bridge
+
+volumes:
+  mysql_data:
