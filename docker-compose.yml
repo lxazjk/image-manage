@@ -32,7 +32,7 @@ services:
       - ./uploads:/app/uploads
       - ./backups:/app/backups
       - ./config.yaml:/app/config.yaml
-      - ./run_backend.py:/app/run_backend.py
+      - ./scripts/run_backend.py:/app/run_backend.py
       - ./backend:/app/backend
     environment:
       - PYTHONPATH=/app

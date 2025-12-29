@@ -10,7 +10,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY backend/ ./backend/
 
 # 复制启动脚本
-COPY run_backend.py .
+COPY scripts/run_backend.py .
 
 # 创建数据目录
 RUN mkdir -p data uploads backups
