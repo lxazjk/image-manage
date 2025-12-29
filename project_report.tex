@@ -19,10 +19,15 @@
 % 图形和图片
 \usepackage{graphicx}
 \usepackage{float}
+\usepackage{tikz}
+\usetikzlibrary{shapes,arrows,positioning,decorations.pathreplacing,shapes.geometric}
+\usepackage{subcaption}
 
 % 表格增强
 \usepackage{booktabs}
 \usepackage{multirow}
+\usepackage{tabularx}
+\usepackage{array}
 
 % 超链接
 \usepackage{hyperref}
@@ -153,7 +158,7 @@
     \item \textbf{Docker配置} - 容器化部署配置
     \item \textbf{依赖管理} - Python和前端依赖列表
     \item \textbf{部署命令} - 本地和容器化启动方式
-    \item \textbf{API测试} - 接口功能验证
+    \item \textbf{效果展示} - 系统界面和功能演示
 \end{itemize}
 
 \newpage
@@ -207,25 +212,35 @@
 
 \begin{figure}[H]
     \centering
-    \begin{lstlisting}[language=,basicstyle=\ttfamily\footnotesize,frame=none]
-┌─────────────────┐    HTTP/REST    ┌─────────────────┐
-│   React前端     │◄──────────────►│  Flask后端API   │
-│  (TypeScript)   │                 │  (Python)       │
-└─────────────────┘                 └─────────────────┘
-         │                                   │
-         │                                   │
-         ▼                                   ▼
-┌─────────────────┐                 ┌─────────────────┐
-│   浏览器客户端   │                 │   数据库        │
-│                 │                 │   (SQLite/MySQL) │
-└─────────────────┘                 └─────────────────┘
-                                         │
-                                         ▼
-                               ┌─────────────────┐
-                               │   文件存储       │
-                               │   (本地磁盘)     │
-                               └─────────────────┘
-    \end{lstlisting}
+    \begin{tikzpicture}[
+        node distance=1.5cm,
+        auto,
+        thick,
+        main node/.style={rectangle, draw, fill=blue!20, text width=3cm, text centered, rounded corners, minimum height=1cm},
+        db node/.style={cylinder, draw, fill=green!20, text width=2.5cm, text centered, minimum height=1cm},
+        storage node/.style={rectangle, draw, fill=orange!20, text width=2.5cm, text centered, rounded corners, minimum height=1cm}
+    ]
+        % 前端层
+        \node[main node] (frontend) {React前端\\(TypeScript)};
+        
+        % 后端层
+        \node[main node, right=of frontend, xshift=2cm] (backend) {Flask后端API\\(Python)};
+        
+        % 数据库层
+        \node[db node, below=of backend] (database) {数据库\\(MySQL/SQLite)};
+        
+        % 存储层
+        \node[storage node, below=of database] (storage) {文件存储\\(本地磁盘)};
+        
+        % 浏览器
+        \node[main node, below=of frontend] (browser) {浏览器客户端};
+        
+        % 连接
+        \draw[->, thick] (frontend) -- node[above] {HTTP/REST API} (backend);
+        \draw[->, thick] (backend) -- node[right] {SQL查询} (database);
+        \draw[->, thick] (backend) -- node[right] {文件I/O} (storage);
+        \draw[->, thick] (browser) -- node[left] {HTTP请求} (frontend);
+    \end{tikzpicture}
     \caption{系统整体架构图}
 \end{figure}
 
@@ -981,116 +996,261 @@ docker-compose down
 
 \newpage
 
-% 测试验证
-\section{测试验证}
+% 效果展示
+\section{系统效果展示}
 
-\subsection{API测试}
+\subsection{用户界面展示}
 
-\subsubsection{用户注册测试}
+\subsubsection{登录注册页面}
 
-\begin{lstlisting}[language=Bash,caption=用户注册API测试]
-curl -X POST http://localhost:8080/api/v1/auth/register \
-  -H "Content-Type: application/json" \
-  -d '{
-    "username": "testuser",
-    "email": "test@example.com",
-    "password": "testpass123"
-  }'
-\end{lstlisting}
+系统提供了简洁美观的登录和注册界面，采用Material-UI设计规范，支持响应式布局。
 
-\subsubsection{图片上传测试}
+\begin{figure}[H]
+    \centering
+    \begin{tikzpicture}[
+        box/.style={rectangle, draw, fill=blue!10, text width=8cm, text centered, minimum height=5cm, rounded corners}
+    ]
+        \node[box] {
+            \textbf{登录页面}\\[0.5cm]
+            \begin{itemize}[leftmargin=*]
+                \item 用户名/密码输入框
+                \item 记住登录状态选项
+                \item 注册链接
+                \item Material-UI风格设计
+            \end{itemize}
+        };
+    \end{tikzpicture}
+    \caption{用户登录界面示意图}
+\end{figure}
 
-\begin{lstlisting}[language=Bash,caption=图片上传API测试]
-curl -X POST http://localhost:8080/api/v1/images/upload \
-  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
-  -F "files=@/path/to/image.jpg"
-\end{lstlisting}
+\subsubsection{图片上传界面}
 
-\subsection{功能测试}
+图片上传功能支持拖拽上传和点击选择两种方式，提供实时上传进度反馈。
 
-\subsubsection{用户管理功能}
+\begin{figure}[H]
+    \centering
+    \begin{tikzpicture}[
+        box/.style={rectangle, draw, fill=green!10, text width=8cm, text centered, minimum height=5cm, rounded corners}
+    ]
+        \node[box] {
+            \textbf{图片上传界面}\\[0.5cm]
+            \begin{itemize}[leftmargin=*]
+                \item 拖拽上传区域（虚线框）
+                \item 文件选择按钮
+                \item 上传进度条显示
+                \item 多文件同时上传支持
+                \item AI标签生成状态提示
+            \end{itemize}
+        };
+    \end{tikzpicture}
+    \caption{图片上传界面示意图}
+\end{figure}
 
-\begin{enumerate}
-    \item 用户注册：验证新用户可以注册，初始状态为pending
-    \item 用户登录：验证不同角色的用户可以正常登录
-    \item 权限控制：验证未审批用户无法访问受保护资源
-    \item 管理员审批：验证管理员可以审批新用户注册
-\end{enumerate}
+\subsubsection{图片浏览界面}
 
-\subsubsection{图片管理功能}
+图片浏览采用网格布局，支持无限滚动加载，每张图片显示缩略图、文件名和标签信息。
 
-\begin{enumerate}
-    \item 文件上传：验证支持多种图片格式的批量上传
-    \item EXIF提取：验证自动提取图片元数据
-    \item 缩略图生成：验证自动生成合适大小的缩略图
-    \item 图片浏览：验证分页加载和搜索功能
-    \item 图片编辑：验证裁剪和色彩调整功能
-\end{enumerate}
+\begin{figure}[H]
+    \centering
+    \begin{tikzpicture}[
+        box/.style={rectangle, draw, fill=orange!10, text width=8cm, text centered, minimum height=5cm, rounded corners}
+    ]
+        \node[box] {
+            \textbf{图片浏览界面}\\[0.5cm]
+            \begin{itemize}[leftmargin=*]
+                \item 网格布局展示图片
+                \item 无限滚动加载
+                \item 标签筛选功能
+                \item 搜索功能
+                \item 批量选择操作
+            \end{itemize}
+        };
+    \end{tikzpicture}
+    \caption{图片浏览界面示意图}
+\end{figure}
 
-\subsubsection{AI标签功能}
+\subsubsection{图片详情页面}
 
-\begin{enumerate}
-    \item API连接测试：验证Qwen VL API连接正常
-    \item 标签生成：验证上传图片时自动生成相关标签
-    \item 标签管理：验证可以手动添加和删除标签
-    \item 标签搜索：验证可以按标签筛选图片
-\end{enumerate}
+图片详情页面展示完整图片、EXIF信息、AI生成的描述和标签管理功能。
 
-\subsection{性能测试}
+\begin{figure}[H]
+    \centering
+    \begin{tikzpicture}[
+        box/.style={rectangle, draw, fill=purple!10, text width=8cm, text centered, minimum height=5cm, rounded corners}
+    ]
+        \node[box] {
+            \textbf{图片详情页面}\\[0.5cm]
+            \begin{itemize}[leftmargin=*]
+                \item 大图预览
+                \item 文件信息（大小、尺寸、时间）
+                \item AI生成的描述（高亮显示）
+                \item 标签管理（添加/删除）
+                \item 编辑功能（裁剪、色彩调整）
+            \end{itemize}
+        };
+    \end{tikzpicture}
+    \caption{图片详情界面示意图}
+\end{figure}
 
-\subsubsection{响应时间测试}
+\subsection{核心功能演示}
+
+\subsubsection{批量操作功能}
+
+系统支持批量选择和批量删除功能，大大提升了图片管理效率。
+
+\begin{figure}[H]
+    \centering
+    \begin{tikzpicture}[
+        box/.style={rectangle, draw, fill=cyan!10, text width=8cm, text centered, minimum height=4cm, rounded corners}
+    ]
+        \node[box] {
+            \textbf{批量操作界面}\\[0.5cm]
+            \begin{itemize}[leftmargin=*]
+                \item 全选/取消全选复选框
+                \item 每张图片的选择框
+                \item 批量删除按钮
+                \item 选中数量显示
+                \item 删除确认对话框
+            \end{itemize}
+        };
+    \end{tikzpicture}
+    \caption{批量操作功能示意图}
+\end{figure}
+
+\subsubsection{AI标签生成效果}
+
+上传图片后，系统自动调用Qwen3 VL API生成标签和描述，并在界面上清晰展示。
 
 \begin{table}[H]
     \centering
-    \begin{tabular}{@{}lll@{}}
+    \begin{tabularx}{\textwidth}{|X|X|}
         \toprule
-        操作 & 预期响应时间 & 实际响应时间 \\
+        \textbf{图片内容} & \textbf{AI生成的标签和描述} \\
         \midrule
-        用户登录 & $< 500ms$ & 120ms \\
-        图片上传（单张） & $< 2s$ & 800ms \\
-        图片列表加载 & $< 1s$ & 300ms \\
-        AI标签生成 & $< 10s$ & 3-5s \\
+        风景照片 & 标签：风景, 自然, 山水, 蓝天, 白云 \\
+        & 描述：这是一幅美丽的自然风景照片，展现了壮丽的山川和蔚蓝的天空... \\
+        \midrule
+        人物照片 & 标签：人物, 肖像, 微笑, 室内, 光线 \\
+        & 描述：照片中的人物面带微笑，室内光线柔和，展现了温馨的氛围... \\
+        \midrule
+        动物照片 & 标签：动物, 宠物, 可爱, 毛茸茸, 玩耍 \\
+        & 描述：一只可爱的宠物正在玩耍，毛茸茸的外表非常讨人喜欢... \\
         \bottomrule
-    \end{tabular}
-    \caption{API响应时间测试结果}
+    \end{tabularx}
+    \caption{AI标签生成效果示例}
 \end{table}
 
-\subsubsection{并发测试}
+\subsubsection{图片编辑功能}
 
-系统支持多用户同时访问，测试结果显示：
+系统提供图片裁剪和色彩调整功能，所有编辑操作都会自动备份原始文件。
+
+\begin{figure}[H]
+    \centering
+    \begin{tikzpicture}[
+        box/.style={rectangle, draw, fill=yellow!10, text width=8cm, text centered, minimum height=4cm, rounded corners}
+    ]
+        \node[box] {
+            \textbf{图片编辑功能}\\[0.5cm]
+            \begin{itemize}[leftmargin=*]
+                \item 图片裁剪（四边调整）
+                \item 亮度/对比度调整
+                \item 实时预览效果
+                \item 编辑历史记录
+                \item 一键恢复原图
+            \end{itemize}
+        };
+    \end{tikzpicture}
+    \caption{图片编辑功能示意图}
+\end{figure}
+
+\subsection{系统管理界面}
+
+\subsubsection{用户管理界面}
+
+管理员可以查看所有用户，审批新用户注册，修改用户角色。
+
+\begin{figure}[H]
+    \centering
+    \begin{tikzpicture}[
+        box/.style={rectangle, draw, fill=red!10, text width=8cm, text centered, minimum height=4cm, rounded corners}
+    ]
+        \node[box] {
+            \textbf{用户管理界面}\\[0.5cm]
+            \begin{itemize}[leftmargin=*]
+                \item 用户列表表格
+                \item 用户状态显示（pending/user/admin）
+                \item 审批按钮
+                \item 角色修改功能
+                \item 用户统计信息
+            \end{itemize}
+        };
+    \end{tikzpicture}
+    \caption{用户管理界面示意图}
+\end{figure}
+
+\subsubsection{系统配置界面}
+
+系统配置界面允许管理员配置AI服务参数、存储路径等系统设置。
+
+\begin{figure}[H]
+    \centering
+    \begin{tikzpicture}[
+        box/.style={rectangle, draw, fill=teal!10, text width=8cm, text centered, minimum height=4cm, rounded corners}
+    ]
+        \node[box] {
+            \textbf{系统配置界面}\\[0.5cm]
+            \begin{itemize}[leftmargin=*]
+                \item Qwen API配置
+                \item 存储路径设置
+                \item 缩略图大小配置
+                \item API连接验证功能
+                \item 配置保存和验证
+            \end{itemize}
+        };
+    \end{tikzpicture}
+    \caption{系统配置界面示意图}
+\end{figure}
+
+\subsection{响应式设计展示}
+
+系统采用响应式设计，能够适配不同屏幕尺寸的设备。
+
+\begin{table}[H]
+    \centering
+    \begin{tabularx}{\textwidth}{|X|X|X|}
+        \toprule
+        \textbf{设备类型} & \textbf{布局特点} & \textbf{功能支持} \\
+        \midrule
+        桌面端（$> 1200px$） & 多列网格布局，侧边栏导航 & 完整功能，批量操作 \\
+        \midrule
+        平板端（$768px - 1200px$） & 双列网格布局，底部导航 & 完整功能，触摸优化 \\
+        \midrule
+        移动端（$< 768px$） & 单列布局，底部导航栏 & 核心功能，简化操作 \\
+        \bottomrule
+    \end{tabularx}
+    \caption{响应式设计适配方案}
+\end{table}
+
+\subsection{用户体验亮点}
+
+\subsubsection{交互体验}
 
 \begin{itemize}
-    \item 同时10个用户上传图片无性能问题
-    \item 同时50个用户浏览图片响应正常
-    \item 数据库连接池工作正常，无死锁现象
+    \item \textbf{拖拽上传}：直观的拖拽操作，支持多文件同时上传
+    \item \textbf{无限滚动}：流畅的图片加载体验，无需手动翻页
+    \item \textbf{实时反馈}：上传进度、操作提示、错误信息实时显示
+    \item \textbf{批量操作}：高效的批量选择和删除功能
+    \item \textbf{智能提示}：AI标签和描述自动生成，减少用户操作
 \end{itemize}
 
-\subsection{兼容性测试}
-
-\subsubsection{浏览器兼容性}
-
-\begin{table}[H]
-    \centering
-    \begin{tabular}{@{}llll@{}}
-        \toprule
-        浏览器 & Chrome & Firefox & Safari \\
-        \midrule
-        图片上传 & \checkmark & \checkmark & \checkmark \\
-        拖拽操作 & \checkmark & \checkmark & \checkmark \\
-        响应式布局 & \checkmark & \checkmark & \checkmark \\
-        \bottomrule
-    \end{tabular}
-    \caption{浏览器兼容性测试结果}
-\end{table}
-
-\subsubsection{移动端兼容性}
-
-系统在以下移动设备上测试通过：
+\subsubsection{视觉设计}
 
 \begin{itemize}
-    \item iOS Safari (iPhone/iPad)
-    \item Android Chrome
-    \item 微信浏览器
+    \item \textbf{Material Design}：采用Material-UI设计规范，界面美观统一
+    \item \textbf{色彩搭配}：合理的色彩使用，突出重点信息
+    \item \textbf{图标系统}：丰富的图标库，提升界面可读性
+    \item \textbf{动画效果}：流畅的过渡动画，提升用户体验
+    \item \textbf{加载状态}：清晰的加载指示器，避免用户等待焦虑
 \end{itemize}
 
 \newpage
