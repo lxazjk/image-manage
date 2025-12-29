@@ -22,9 +22,13 @@ logger = logging.getLogger(__name__)
 
 def upload_images():
     """上传图片"""
+    # 检查用户认证
+    if not hasattr(g, 'current_user') or g.current_user is None:
+        return jsonify({'error': '未认证'}), 401
+
     logger.info("[上传] 收到上传请求")
     print("[DEBUG] 收到上传请求")
-    
+
     if 'files' not in request.files:
         logger.warning("[上传] 请求中没有files字段")
         return jsonify({'error': '没有上传文件'}), 400
@@ -204,6 +208,10 @@ def upload_images():
 
 def get_images():
     """获取图片列表"""
+    # 检查用户认证
+    if not hasattr(g, 'current_user') or g.current_user is None:
+        return jsonify({'error': '未认证'}), 401
+
     page = int(request.args.get('page', 1))
     tag_filter = request.args.get('tag')
     search = request.args.get('search')
@@ -259,6 +267,10 @@ def get_images():
 
 def get_image_detail(image_id):
     """获取图片详情"""
+    # 检查用户认证
+    if not hasattr(g, 'current_user') or g.current_user is None:
+        return jsonify({'error': '未认证'}), 401
+
     session = get_db()
     try:
         image = session.query(Image).filter_by(id=image_id, is_deleted=False).first()
@@ -296,6 +308,10 @@ def get_image_detail(image_id):
 
 def edit_image(image_id):
     """编辑图片"""
+    # 检查用户认证
+    if not hasattr(g, 'current_user') or g.current_user is None:
+        return jsonify({'error': '未认证'}), 401
+
     data = request.get_json()
     if not data or 'operation' not in data:
         return jsonify({'error': '操作类型不能为空'}), 400
@@ -413,6 +429,10 @@ def _adjust_color(file_path, params):
 
 def delete_image(image_id):
     """删除图片（软删除）"""
+    # 检查用户认证
+    if not hasattr(g, 'current_user') or g.current_user is None:
+        return jsonify({'error': '未认证'}), 401
+
     session = get_db()
     try:
         image = session.query(Image).filter_by(id=image_id, is_deleted=False).first()
@@ -447,6 +467,10 @@ def delete_image(image_id):
 
 def batch_delete_images():
     """批量删除图片（软删除）"""
+    # 检查用户认证
+    if not hasattr(g, 'current_user') or g.current_user is None:
+        return jsonify({'error': '未认证'}), 401
+
     data = request.get_json()
     if not data or 'image_ids' not in data:
         return jsonify({'error': '请提供要删除的图片ID列表'}), 400
@@ -458,7 +482,7 @@ def batch_delete_images():
     session = get_db()
     deleted_count = 0
     failed_ids = []
-    
+
     try:
         # 查询所有要删除的图片
         images = session.query(Image).filter(
@@ -505,6 +529,10 @@ def batch_delete_images():
 
 def restore_image(image_id):
     """恢复图片"""
+    # 检查用户认证
+    if not hasattr(g, 'current_user') or g.current_user is None:
+        return jsonify({'error': '未认证'}), 401
+
     session = get_db()
     try:
         image = session.query(Image).filter_by(id=image_id, is_deleted=True).first()
