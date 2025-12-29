@@ -120,6 +120,8 @@ const Gallery: React.FC = () => {
   const [playbackInterval, setPlaybackInterval] = useState<NodeJS.Timeout | null>(null)
   const [fullscreenMode, setFullscreenMode] = useState(false)
   const [playbackSpeed, setPlaybackSpeed] = useState(3000) // 播放间隔时间（毫秒）
+  const [touchStartX, setTouchStartX] = useState<number | null>(null)
+  const [touchEndX, setTouchEndX] = useState<number | null>(null)
 
   const navigate = useNavigate()
   const { enqueueSnackbar } = useSnackbar()
@@ -342,6 +344,34 @@ const Gallery: React.FC = () => {
     const sizes = ['Bytes', 'KB', 'MB', 'GB']
     const i = Math.floor(Math.log(bytes) / Math.log(k))
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]
+  }
+
+  // 触摸事件处理
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setTouchStartX(e.touches[0].clientX)
+  }
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    setTouchEndX(e.touches[0].clientX)
+  }
+
+  const handleTouchEnd = () => {
+    if (!touchStartX || !touchEndX) return
+
+    const distance = touchStartX - touchEndX
+    const isLeftSwipe = distance > 50
+    const isRightSwipe = distance < -50
+
+    if (isLeftSwipe) {
+      // 左滑：下一张
+      setCurrentIndex(prev => (prev + 1) % images.length)
+    } else if (isRightSwipe) {
+      // 右滑：上一张
+      setCurrentIndex(prev => (prev - 1 + images.length) % images.length)
+    }
+
+    setTouchStartX(null)
+    setTouchEndX(null)
   }
 
   return (
@@ -658,7 +688,12 @@ const Gallery: React.FC = () => {
             flexDirection: 'column',
             alignItems: 'center',
             justifyContent: 'center',
-            position: 'relative'
+            position: 'relative',
+            // 移动设备优化
+            '@media (max-width: 768px)': {
+              paddingTop: '60px', // 为顶部关闭按钮留空间
+              paddingBottom: '120px' // 为底部控制面板留更多空间
+            }
           }}>
             {/* 关闭按钮 */}
             <IconButton
@@ -669,13 +704,17 @@ const Gallery: React.FC = () => {
               }}
               sx={{
                 position: 'absolute',
-                top: 20,
-                right: 20,
+                top: { xs: 16, sm: 20 },
+                right: { xs: 16, sm: 20 },
                 color: 'white',
                 bgcolor: 'rgba(0, 0, 0, 0.5)',
                 '&:hover': {
                   bgcolor: 'rgba(0, 0, 0, 0.7)'
-                }
+                },
+                // 移动设备优化
+                width: { xs: 48, sm: 40 },
+                height: { xs: 48, sm: 40 },
+                fontSize: { xs: '1.5rem', sm: '1rem' }
               }}
             >
               <Close />
@@ -683,15 +722,20 @@ const Gallery: React.FC = () => {
 
             {/* 当前播放的大图 */}
             {images.length > 0 && images[currentIndex] && (
-              <Box sx={{
-                maxWidth: '80%',
-                maxHeight: '70%',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                mb: 4,
-                position: 'relative'
-              }}>
+              <Box
+                sx={{
+                  maxWidth: { xs: '95%', sm: '80%' },
+                  maxHeight: { xs: '50vh', sm: '70%' },
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  mb: { xs: 2, sm: 4 },
+                  position: 'relative'
+                }}
+                onTouchStart={handleTouchStart}
+                onTouchMove={handleTouchMove}
+                onTouchEnd={handleTouchEnd}
+              >
                 <Box
                   sx={{
                     position: 'relative',
@@ -729,21 +773,21 @@ const Gallery: React.FC = () => {
                   <Box
                     sx={{
                       position: 'absolute',
-                      top: 20,
-                      left: 20,
+                      top: { xs: 16, sm: 20 },
+                      left: { xs: 16, sm: 20 },
                       bgcolor: 'rgba(0, 0, 0, 0.7)',
                       color: 'white',
-                      px: 2,
-                      py: 1,
+                      px: { xs: 1.5, sm: 2 },
+                      py: { xs: 0.5, sm: 1 },
                       borderRadius: '20px',
                       display: 'flex',
                       alignItems: 'center',
-                      gap: 1,
-                      fontSize: '0.9rem',
+                      gap: 0.5,
+                      fontSize: { xs: '0.8rem', sm: '0.9rem' },
                       backdropFilter: 'blur(10px)'
                     }}
                   >
-                    <PlayArrow sx={{ fontSize: '1rem' }} />
+                    <PlayArrow sx={{ fontSize: { xs: '0.9rem', sm: '1rem' } }} />
                     播放中
                   </Box>
                 )}
@@ -754,16 +798,24 @@ const Gallery: React.FC = () => {
             {images.length > 0 && images[currentIndex] && images[currentIndex].tags.length > 0 && (
               <Box sx={{
                 position: 'absolute',
-                top: 100,
+                top: { xs: 80, sm: 100 },
                 left: '50%',
                 transform: 'translateX(-50%)',
                 textAlign: 'center',
                 color: 'white',
-                maxWidth: '80%',
-                animation: 'slideIn 0.5s ease-out'
+                maxWidth: { xs: '90%', sm: '80%' },
+                animation: 'slideIn 0.5s ease-out',
+                px: 2
               }}>
-                <Box sx={{ display: 'flex', justifyContent: 'center', gap: 1, flexWrap: 'wrap' }}>
-                  {images[currentIndex].tags.slice(0, 5).map((tag) => (
+                <Box sx={{
+                  display: 'flex',
+                  justifyContent: 'center',
+                  gap: { xs: 0.5, sm: 1 },
+                  flexWrap: 'wrap',
+                  maxHeight: { xs: '60px', sm: 'auto' },
+                  overflowY: { xs: 'auto', sm: 'visible' }
+                }}>
+                  {images[currentIndex].tags.slice(0, { xs: 3, sm: 5 }).map((tag) => (
                     <Chip
                       key={tag.id}
                       label={tag.name}
@@ -772,8 +824,9 @@ const Gallery: React.FC = () => {
                         bgcolor: 'rgba(255, 255, 255, 0.2)',
                         color: 'white',
                         border: '1px solid rgba(255, 255, 255, 0.3)',
-                        fontSize: '0.9rem',
-                        py: 1
+                        fontSize: { xs: '0.8rem', sm: '0.9rem' },
+                        py: { xs: 0.5, sm: 1 },
+                        height: { xs: '28px', sm: '32px' }
                       }}
                     />
                   ))}
@@ -786,17 +839,18 @@ const Gallery: React.FC = () => {
               className="playback-controls"
               sx={{
                 position: 'absolute',
-                bottom: 40,
+                bottom: { xs: 20, sm: 40 },
                 left: '50%',
                 transform: 'translateX(-50%)',
                 display: 'flex',
                 alignItems: 'center',
-                gap: 2,
+                gap: { xs: 1, sm: 2 },
                 bgcolor: 'rgba(0, 0, 0, 0.8)',
-                borderRadius: '50px',
-                px: 4,
-                py: 2,
-                minWidth: '500px',
+                borderRadius: { xs: '30px', sm: '50px' },
+                px: { xs: 2, sm: 4 },
+                py: { xs: 1.5, sm: 2 },
+                minWidth: { xs: '90%', sm: '500px' },
+                maxWidth: { xs: '95%', sm: '600px' },
                 backdropFilter: 'blur(15px)',
                 border: '1px solid rgba(255, 255, 255, 0.1)',
                 boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)'
@@ -808,9 +862,13 @@ const Gallery: React.FC = () => {
                 onClick={() => {
                   setCurrentIndex(prev => (prev - 1 + images.length) % images.length)
                 }}
-                sx={{ color: 'white' }}
+                sx={{
+                  color: 'white',
+                  width: { xs: 44, sm: 40 },
+                  height: { xs: 44, sm: 40 }
+                }}
               >
-                <SkipPrevious />
+                <SkipPrevious sx={{ fontSize: { xs: '1.5rem', sm: '1.25rem' } }} />
               </IconButton>
 
               {/* 播放/暂停按钮 */}
@@ -820,11 +878,11 @@ const Gallery: React.FC = () => {
                   color: 'white',
                   bgcolor: 'primary.main',
                   '&:hover': { bgcolor: 'primary.dark' },
-                  width: 56,
-                  height: 56
+                  width: { xs: 60, sm: 56 },
+                  height: { xs: 60, sm: 56 }
                 }}
               >
-                {isPlaying ? <Pause /> : <PlayArrow />}
+                {isPlaying ? <Pause sx={{ fontSize: { xs: '1.75rem', sm: '1.5rem' } }} /> : <PlayArrow sx={{ fontSize: { xs: '1.75rem', sm: '1.5rem' } }} />}
               </IconButton>
 
               {/* 下一张按钮 */}
@@ -832,13 +890,25 @@ const Gallery: React.FC = () => {
                 onClick={() => {
                   setCurrentIndex(prev => (prev + 1) % images.length)
                 }}
-                sx={{ color: 'white' }}
+                sx={{
+                  color: 'white',
+                  width: { xs: 44, sm: 40 },
+                  height: { xs: 44, sm: 40 }
+                }}
               >
-                <SkipNext />
+                <SkipNext sx={{ fontSize: { xs: '1.5rem', sm: '1.25rem' } }} />
               </IconButton>
 
               {/* 播放信息 */}
-              <Typography variant="body1" sx={{ color: 'white', ml: 2, minWidth: '100px' }}>
+              <Typography
+                variant="body1"
+                sx={{
+                  color: 'white',
+                  ml: { xs: 1, sm: 2 },
+                  minWidth: { xs: '80px', sm: '100px' },
+                  fontSize: { xs: '0.9rem', sm: '1rem' }
+                }}
+              >
                 {currentIndex + 1} / {images.length}
               </Typography>
             </Box>
@@ -849,13 +919,13 @@ const Gallery: React.FC = () => {
               bottom: 0,
               left: 0,
               right: 0,
-              height: '4px'
+              height: { xs: '3px', sm: '4px' }
             }}>
               <LinearProgress
                 variant="determinate"
                 value={(currentIndex + 1) / images.length * 100}
                 sx={{
-                  height: '4px',
+                  height: { xs: '3px', sm: '4px' },
                   bgcolor: 'rgba(255, 255, 255, 0.2)',
                   '& .MuiLinearProgress-bar': {
                     bgcolor: 'primary.main',
