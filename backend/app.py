@@ -4,6 +4,7 @@
 """
 
 import os
+import logging
 import connexion
 from flask import Flask
 from flask_cors import CORS
@@ -12,6 +13,12 @@ from database import init_db
 from config import Config
 from auth import init_auth_manager
 from controllers import auth_controller, user_controller, image_controller, tag_controller, config_controller
+
+# 配置日志
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
 
 def create_app(config_file=None):
     """创建Flask应用实例"""

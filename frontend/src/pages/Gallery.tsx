@@ -30,6 +30,7 @@ interface Image {
   height: number | null
   taken_at: string | null
   thumbnail: string
+  description: string | null  // AI生成的描述
   tags: Array<{ id: number; name: string }>
   created_at: string
 }

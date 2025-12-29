@@ -35,6 +35,7 @@ interface ImageDetail {
   location_lng: number | null
   location_name: string | null
   thumbnail: string
+  description: string | null  // AI生成的描述
   tags: Array<{ id: number; name: string }>
   created_at: string
   updated_at: string | null
@@ -340,6 +341,27 @@ const ImageDetail: React.FC = () => {
               <Typography variant="body2" color="text.secondary">上传时间</Typography>
               <Typography>{new Date(image.created_at).toLocaleString()}</Typography>
             </Box>
+
+            {/* AI生成的描述 */}
+            {image.description && (
+              <Box sx={{ mb: 3 }}>
+                <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                  AI描述
+                </Typography>
+                <Paper
+                  sx={{
+                    p: 2,
+                    bgcolor: 'primary.light',
+                    color: 'primary.contrastText',
+                    borderRadius: 1
+                  }}
+                >
+                  <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap' }}>
+                    {image.description}
+                  </Typography>
+                </Paper>
+              </Box>
+            )}
 
             {/* 标签管理 */}
             <Box>

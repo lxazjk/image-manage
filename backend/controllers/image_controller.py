@@ -22,14 +22,27 @@ logger = logging.getLogger(__name__)
 
 def upload_images():
     """上传图片"""
+    logger.info("[上传] 收到上传请求")
+    print("[DEBUG] 收到上传请求")
+    
     if 'files' not in request.files:
+        logger.warning("[上传] 请求中没有files字段")
         return jsonify({'error': '没有上传文件'}), 400
 
     files = request.files.getlist('files')
+    logger.info(f"[上传] 文件数量: {len(files)}")
+    print(f"[DEBUG] 文件数量: {len(files)}")
+    
     if not files or files[0].filename == '':
+        logger.warning("[上传] 文件列表为空")
         return jsonify({'error': '没有选择文件'}), 400
 
-    config = Config()
+    # 确保使用正确的配置文件路径
+    import os
+    config_file = '/app/config.yaml' if os.path.exists('/app/config.yaml') else 'config.yaml'
+    config = Config(config_file)
+    logger.info(f"[上传] 使用配置文件: {config_file}")
+    logger.info(f"[上传] Qwen配置 - enabled: {config.get('qwen.enabled', False)}")
     storage_config = config.get('storage', {})
     base_path = storage_config.get('base_path', './uploads')
     allowed_extensions = storage_config.get('allowed_extensions', 'jpg,png,gif,jpeg')
@@ -87,43 +100,71 @@ def upload_images():
                 session.add(image)
                 session.flush()  # 获取ID
 
-                # 尝试生成AI标签
+                # 尝试生成AI标签和描述
                 ai_tags = []
+                ai_description = None
                 ai_tag_error = None
+                ai_description_error = None
+                
                 try:
+                    logger.info(f"[AI分析] 开始处理图片: {filename}")
                     qwen_client = QwenVLClient(config)
+                    logger.info(f"[AI分析] Qwen客户端初始化完成, enabled={qwen_client.is_enabled()}")
+                    
                     if qwen_client.is_enabled():
-                        logger.info(f"为图片 {filename} 生成AI标签...")
-                        ai_tags = qwen_client.analyze_image(storage_path)
-                        logger.info(f"成功生成了 {len(ai_tags)} 个AI标签: {ai_tags}")
+                        # 生成AI标签
+                        try:
+                            logger.info(f"[AI标签] 为图片 {filename} 生成AI标签...")
+                            print(f"[DEBUG] 开始调用Qwen API分析图片: {filename}")
+                            ai_tags = qwen_client.analyze_image(storage_path)
+                            logger.info(f"[AI标签] 成功生成了 {len(ai_tags)} 个AI标签: {ai_tags}")
+                            print(f"[DEBUG] AI标签生成成功: {ai_tags}")
 
-                        # 保存AI生成的标签
-                        for tag_name in ai_tags:
-                            try:
-                                # 检查标签是否已存在
-                                tag = session.query(Tag).filter_by(name=tag_name).first()
-                                if not tag:
-                                    tag = Tag(name=tag_name)
-                                    session.add(tag)
-                                    session.flush()
+                            # 保存AI生成的标签
+                            for tag_name in ai_tags:
+                                try:
+                                    # 检查标签是否已存在
+                                    tag = session.query(Tag).filter_by(name=tag_name).first()
+                                    if not tag:
+                                        tag = Tag(name=tag_name)
+                                        session.add(tag)
+                                        session.flush()
 
-                                # 关联标签和图片
-                                if tag not in image.tags:
-                                    image.tags.append(tag)
-                                    logger.info(f"为图片 {filename} 添加标签: {tag_name}")
-                            except Exception as tag_error:
-                                logger.error(f"保存标签 '{tag_name}' 失败: {tag_error}")
-                                # 继续处理其他标签
+                                    # 关联标签和图片
+                                    if tag not in image.tags:
+                                        image.tags.append(tag)
+                                        logger.info(f"为图片 {filename} 添加标签: {tag_name}")
+                                except Exception as tag_error:
+                                    logger.error(f"保存标签 '{tag_name}' 失败: {tag_error}")
+                                    # 继续处理其他标签
+                        except ValueError as e:
+                            ai_tag_error = f"配置错误: {str(e)}"
+                            logger.warning(f"AI标签生成配置错误: {e}")
+                        except Exception as e:
+                            ai_tag_error = f"生成失败: {str(e)}"
+                            logger.error(f"AI标签生成失败: {e}", exc_info=True)
+                        
+                        # 生成AI描述
+                        try:
+                            logger.info(f"[AI描述] 为图片 {filename} 生成描述...")
+                            print(f"[DEBUG] 开始调用Qwen API生成描述: {filename}")
+                            ai_description = qwen_client.generate_description(storage_path)
+                            if ai_description:
+                                image.description = ai_description
+                                logger.info(f"[AI描述] 成功生成描述: {ai_description[:50]}...")
+                                print(f"[DEBUG] AI描述生成成功: {ai_description[:50]}...")
+                            else:
+                                logger.warning(f"[AI描述] 未生成描述")
+                        except ValueError as e:
+                            ai_description_error = f"配置错误: {str(e)}"
+                            logger.warning(f"AI描述生成配置错误: {e}")
+                        except Exception as e:
+                            ai_description_error = f"生成失败: {str(e)}"
+                            logger.error(f"AI描述生成失败: {e}", exc_info=True)
                     else:
-                        logger.info(f"Qwen功能未启用，跳过图片 {filename} 的AI标签生成")
-                except ValueError as e:
-                    # 配置错误（如API Key未配置）
-                    ai_tag_error = f"配置错误: {str(e)}"
-                    logger.warning(f"AI标签生成配置错误: {e}")
+                        logger.info(f"Qwen功能未启用，跳过图片 {filename} 的AI分析")
                 except Exception as e:
-                    # 其他错误（网络错误、API错误等）
-                    ai_tag_error = f"生成失败: {str(e)}"
-                    logger.error(f"AI标签生成失败: {e}", exc_info=True)
+                    logger.error(f"AI分析过程异常: {e}", exc_info=True)
                     # 不影响图片上传，只记录警告
 
                 uploaded.append({
@@ -135,7 +176,9 @@ def upload_images():
                     'height': image_info['height'],
                     'taken_at': image.taken_at.isoformat() if image.taken_at else None,
                     'ai_tags': ai_tags,  # 添加AI生成的标签信息
-                    'ai_tag_error': ai_tag_error,  # 添加错误信息（如果有）
+                    'ai_tag_error': ai_tag_error,  # 添加标签错误信息（如果有）
+                    'ai_description': ai_description,  # 添加AI生成的描述
+                    'ai_description_error': ai_description_error,  # 添加描述错误信息（如果有）
                     'thumbnail': thumbnail,
                     'created_at': image.created_at.isoformat()
                 })
@@ -199,6 +242,7 @@ def get_images():
                 'height': image.height,
                 'taken_at': image.taken_at.isoformat() if image.taken_at else None,
                 'thumbnail': image.thumbnail,
+                'description': image.description,  # AI生成的描述
                 'tags': tags,
                 'created_at': image.created_at.isoformat()
             })
@@ -241,6 +285,7 @@ def get_image_detail(image_id):
             'location_lng': image.location_lng,
             'location_name': image.location_name,
             'thumbnail': image.thumbnail,
+            'description': image.description,  # AI生成的描述
             'tags': tags,
             'created_at': image.created_at.isoformat(),
             'updated_at': image.updated_at.isoformat() if image.updated_at else None

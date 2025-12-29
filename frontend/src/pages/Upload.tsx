@@ -26,6 +26,8 @@ interface UploadResult {
   created_at: string
   ai_tags?: string[]
   ai_tag_error?: string
+  ai_description?: string  // AI生成的描述
+  ai_description_error?: string  // 描述生成错误信息
 }
 
 interface UploadError {
@@ -345,6 +347,23 @@ const Upload: React.FC = () => {
                       title={result.ai_tag_error}
                     />
                   )}
+                  {result.ai_description && (
+                    <Chip
+                      label={`AI描述已生成`}
+                      size="small"
+                      color="success"
+                      variant="filled"
+                    />
+                  )}
+                  {result.ai_description_error && (
+                    <Chip
+                      label={`AI描述生成失败`}
+                      size="small"
+                      color="warning"
+                      variant="outlined"
+                      title={result.ai_description_error}
+                    />
+                  )}
                 </Box>
                 {result.ai_tags && result.ai_tags.length > 0 && (
                   <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mt: 0.5 }}>
@@ -358,6 +377,16 @@ const Upload: React.FC = () => {
                         sx={{ fontSize: '0.7rem' }}
                       />
                     ))}
+                  </Box>
+                )}
+                {result.ai_description && (
+                  <Box sx={{ mt: 1, p: 1, bgcolor: 'primary.light', borderRadius: 1, width: '100%' }}>
+                    <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.5 }}>
+                      AI描述:
+                    </Typography>
+                    <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap' }}>
+                      {result.ai_description}
+                    </Typography>
                   </Box>
                 )}
               </ListItem>

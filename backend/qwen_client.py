@@ -230,6 +230,212 @@ class QwenVLClient:
             logger.error(f"Qwen API调用异常: {e}", exc_info=True)
             raise Exception(f"图片分析失败: {str(e)}")
 
+    def generate_description(self, image_path: str) -> str:
+        """生成图片描述/概述
+
+        Args:
+            image_path: 图片文件路径
+
+        Returns:
+            图片描述文本，如果失败返回空字符串
+
+        Raises:
+            Exception: API调用失败时抛出异常
+        """
+        if not self.is_enabled():
+            logger.info("Qwen功能未启用，跳过图片描述生成")
+            return ""
+
+        if not self.api_key:
+            logger.warning("Qwen API Key未配置")
+            raise ValueError("Qwen API Key未配置，无法生成图片描述")
+
+        try:
+            # 将图片转换为base64
+            image_base64 = self._image_to_base64(image_path)
+            logger.info(f"开始生成图片描述: {image_path}")
+
+            # 判断是否使用兼容模式（OpenAI兼容格式）
+            is_compatible_mode = 'compatible-mode' in self.base_url.lower()
+            
+            if is_compatible_mode:
+                # 兼容模式使用 OpenAI 兼容格式
+                messages = [
+                    {
+                        "role": "user",
+                        "content": [
+                            {
+                                "type": "image_url",
+                                "image_url": {
+                                    "url": f"data:image/jpeg;base64,{image_base64}"
+                                }
+                            },
+                            {
+                                "type": "text",
+                                "text": "请详细描述这张图片的内容，包括主要对象、场景、颜色、氛围等。用中文回答，描述要准确、详细，字数在50-200字之间。"
+                            }
+                        ]
+                    }
+                ]
+                
+                data = {
+                    "model": self.model,
+                    "messages": messages,
+                    "max_tokens": 300,
+                    "temperature": 0.7
+                }
+            else:
+                # 标准 DashScope API 格式
+                messages = [
+                    {
+                        "role": "user",
+                        "content": [
+                            {
+                                "image": f"data:image/jpeg;base64,{image_base64}"
+                            },
+                            {
+                                "text": "请详细描述这张图片的内容，包括主要对象、场景、颜色、氛围等。用中文回答，描述要准确、详细，字数在50-200字之间。"
+                            }
+                        ]
+                    }
+                ]
+
+                data = {
+                    "model": self.model,
+                    "input": {
+                        "messages": messages
+                    },
+                    "parameters": {
+                        "max_tokens": 300,
+                        "temperature": 0.7
+                    }
+                }
+
+            headers = {
+                "Authorization": f"Bearer {self.api_key}",
+                "Content-Type": "application/json"
+            }
+            
+            if not is_compatible_mode:
+                headers["X-DashScope-SSE"] = "disable"
+
+            last_error = None
+            for attempt in range(self.max_retries):
+                try:
+                    logger.info(f"调用Qwen API生成描述 (尝试 {attempt + 1}/{self.max_retries})...")
+                    
+                    if is_compatible_mode:
+                        api_url = f"{self.base_url}/chat/completions"
+                    elif 'vl' in self.model.lower():
+                        api_url = f"{self.base_url}/services/aigc/multimodal/generation/generation"
+                    else:
+                        api_url = f"{self.base_url}/services/aigc/text-generation/generation"
+                    
+                    response = requests.post(
+                        api_url,
+                        json=data,
+                        headers=headers,
+                        timeout=self.timeout
+                    )
+
+                    if response.status_code == 200:
+                        result = response.json()
+                        description = self._parse_description_response(result)
+                        if description:
+                            logger.info(f"成功生成图片描述: {description[:50]}...")
+                            return description
+                    elif response.status_code == 401:
+                        error_msg = "API Key无效或已过期"
+                        logger.error(f"{error_msg} (HTTP {response.status_code})")
+                        raise ValueError(error_msg)
+                    elif response.status_code == 400:
+                        error_data = response.json() if response.text else {}
+                        error_msg = error_data.get('message', f"请求参数错误 (HTTP {response.status_code})")
+                        logger.error(f"{error_msg}: {response.text}")
+                        raise ValueError(error_msg)
+                    elif response.status_code == 429:
+                        error_msg = "API调用频率超限，请稍后重试"
+                        logger.warning(f"{error_msg} (HTTP {response.status_code})")
+                        if attempt == self.max_retries - 1:
+                            raise Exception(error_msg)
+                        time.sleep(2 ** attempt)
+                        continue
+                    elif response.status_code >= 500:
+                        error_msg = f"服务器错误 (HTTP {response.status_code})"
+                        logger.error(f"{error_msg}: {response.text}")
+                        if attempt == self.max_retries - 1:
+                            raise Exception(error_msg)
+                        time.sleep(1)
+                        continue
+                    else:
+                        error_msg = f"Qwen API调用失败 (HTTP {response.status_code}): {response.text}"
+                        logger.error(error_msg)
+                        if attempt == self.max_retries - 1:
+                            raise Exception(error_msg)
+
+                except requests.exceptions.Timeout as e:
+                    last_error = f"请求超时 (尝试 {attempt + 1}/{self.max_retries})"
+                    logger.warning(last_error)
+                    if attempt == self.max_retries - 1:
+                        raise Exception(last_error)
+                except requests.exceptions.RequestException as e:
+                    last_error = f"网络错误 (尝试 {attempt + 1}/{self.max_retries}): {e}"
+                    logger.error(last_error)
+                    if attempt == self.max_retries - 1:
+                        raise Exception(last_error)
+
+                if attempt < self.max_retries - 1:
+                    time.sleep(1)
+
+            return ""
+
+        except ValueError as e:
+            logger.error(f"配置错误: {e}")
+            raise
+        except Exception as e:
+            logger.error(f"生成图片描述失败: {e}", exc_info=True)
+            raise Exception(f"图片描述生成失败: {str(e)}")
+
+    def _parse_description_response(self, response_data: Dict[str, Any]) -> str:
+        """解析描述生成API响应
+
+        Args:
+            response_data: API响应数据
+
+        Returns:
+            描述文本
+        """
+        try:
+            text = None
+            
+            if 'choices' in response_data and 'output' not in response_data:
+                # OpenAI兼容模式
+                if len(response_data['choices']) > 0:
+                    text = response_data['choices'][0].get('message', {}).get('content', '')
+            elif 'output' in response_data:
+                # 标准DashScope格式
+                output = response_data['output']
+                if isinstance(output, dict):
+                    if 'text' in output:
+                        text = output['text']
+                    elif 'choices' in output and len(output['choices']) > 0:
+                        text = output['choices'][0].get('message', {}).get('content', '')
+                elif isinstance(output, str):
+                    text = output
+
+            if text:
+                text = text.strip()
+                # 清理可能的格式问题
+                text = text.replace('\n\n', '\n').replace('\n', ' ')
+                return text
+            else:
+                logger.warning("API返回空描述")
+                return ""
+
+        except Exception as e:
+            logger.error(f"解析描述响应失败: {e}", exc_info=True)
+            return ""
+
     def _image_to_base64(self, image_path: str) -> str:
         """将图片转换为base64编码
 

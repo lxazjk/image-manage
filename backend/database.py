@@ -70,6 +70,9 @@ class Image(Base):
     # 缩略图（base64编码）
     thumbnail = Column(Text)
 
+    # AI生成的描述
+    description = Column(Text)  # AI生成的图像描述/概述
+
     # 状态
     is_deleted = Column(Boolean, default=False)
 
