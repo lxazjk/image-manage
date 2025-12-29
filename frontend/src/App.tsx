@@ -10,6 +10,7 @@ import Upload from './pages/Upload'
 import Settings from './pages/Settings'
 import Admin from './pages/Admin'
 import ImageDetail from './pages/ImageDetail'
+import MCPTest from './pages/MCPTest'
 import { AuthContext } from './contexts/AuthContext'
 import { api } from './services/api'
 
@@ -77,6 +78,9 @@ function App() {
               <Button color="inherit" onClick={() => window.location.href = '/settings'}>
                 设置
               </Button>
+              <Button color="inherit" onClick={() => window.location.href = '/mcp-test'}>
+                MCP接口
+              </Button>
               <Button color="inherit" onClick={logout}>
                 退出
               </Button>
@@ -105,6 +109,10 @@ function App() {
             <Route
               path="/settings"
               element={user ? <Settings /> : <Navigate to="/login" replace />}
+            />
+            <Route
+              path="/mcp-test"
+              element={user ? <MCPTest /> : <Navigate to="/login" replace />}
             />
             <Route
               path="/admin"

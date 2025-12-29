@@ -116,3 +116,15 @@ export const configAPI = {
   updateConfig: (config: any) =>
     api.put('/config', config),
 }
+
+export const mcpAPI = {
+  // 获取MCP工具列表
+  getTools: () => api.get('/mcp/tools'),
+
+  // 调用MCP工具
+  callTool: (toolName: string, args: any) =>
+    api.post('/mcp/call', {
+      name: toolName,
+      arguments: args
+    }),
+}

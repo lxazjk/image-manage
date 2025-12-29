@@ -226,21 +226,24 @@ def get_available_tags_tool(arguments):
     """获取可用标签工具"""
     session = get_db()
     try:
+        from sqlalchemy import func
+        from database import image_tags
+        
         # 获取所有标签及其使用次数
         tags_query = session.query(
-            Tag.name,
             Tag.id,
-            text('COUNT(image_tags.image_id) as usage_count')
+            Tag.name,
+            func.count(image_tags.c.image_id).label('usage_count')
         ).outerjoin(
-            text('image_tags'), Tag.id == text('image_tags.tag_id')
-        ).group_by(Tag.id, Tag.name).order_by(text('usage_count DESC'))
+            image_tags, Tag.id == image_tags.c.tag_id
+        ).group_by(Tag.id, Tag.name).order_by(func.count(image_tags.c.image_id).desc())
 
         tags = []
         for tag in tags_query:
             tags.append({
                 'id': tag.id,
                 'name': tag.name,
-                'usage_count': tag.usage_count
+                'usage_count': tag.usage_count or 0
             })
 
         return jsonify({
