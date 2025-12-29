@@ -1,4 +1,53 @@
 import React, { useState, useEffect } from 'react'
+
+// 添加CSS动画样式
+const styles = `
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.05);
+    opacity: 0.9;
+  }
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateY(50px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes shine {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.image-card.playing {
+  animation: pulse 2s infinite;
+  box-shadow: 0 0 30px rgba(25, 118, 210, 0.8) !important;
+  border: 4px solid #1976d2 !important;
+  transform: scale(1.05) !important;
+}
+`
+
+// 注入样式
+if (typeof document !== 'undefined') {
+  const styleSheet = document.createElement('style')
+  styleSheet.type = 'text/css'
+  styleSheet.innerText = styles
+  document.head.appendChild(styleSheet)
+}
 import { useNavigate } from 'react-router-dom'
 import InfiniteScroll from 'react-infinite-scroll-component'
 import {
@@ -24,9 +73,13 @@ import {
   DialogContentText,
   DialogActions,
   Toolbar,
-  AppBar
+  AppBar,
+  LinearProgress,
+  IconButton,
+  Fade,
+  Backdrop
 } from '@mui/material'
-import { Search, Delete } from '@mui/icons-material'
+import { Search, Delete, PlayArrow, Pause, Stop, SkipNext, SkipPrevious, Fullscreen, FullscreenExit, Close } from '@mui/icons-material'
 import { useSnackbar } from 'notistack'
 
 import { imageAPI, tagAPI } from '../services/api'
@@ -60,6 +113,13 @@ const Gallery: React.FC = () => {
   const [selectedImages, setSelectedImages] = useState<Set<number>>(new Set())
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [deleting, setDeleting] = useState(false)
+
+  // 播放相关状态
+  const [isPlaying, setIsPlaying] = useState(false)
+  const [currentIndex, setCurrentIndex] = useState(0)
+  const [playbackInterval, setPlaybackInterval] = useState<NodeJS.Timeout | null>(null)
+  const [fullscreenMode, setFullscreenMode] = useState(false)
+  const [playbackSpeed, setPlaybackSpeed] = useState(3000) // 播放间隔时间（毫秒）
 
   const navigate = useNavigate()
   const { enqueueSnackbar } = useSnackbar()
@@ -106,6 +166,85 @@ const Gallery: React.FC = () => {
   useEffect(() => {
     loadImages(1, true)
   }, [selectedTag, searchQuery])
+
+  // 播放控制逻辑
+  useEffect(() => {
+    if (isPlaying && images.length > 0 && fullscreenMode) {
+      // 开始播放，设置定时器自动切换图片
+      const interval = setInterval(() => {
+        setCurrentIndex(prevIndex => {
+          const nextIndex = (prevIndex + 1) % images.length
+          return nextIndex
+        })
+      }, playbackSpeed)
+
+      setPlaybackInterval(interval)
+
+      return () => {
+        clearInterval(interval)
+        setPlaybackInterval(null)
+      }
+    } else {
+      // 停止播放
+      if (playbackInterval) {
+        clearInterval(playbackInterval)
+        setPlaybackInterval(null)
+      }
+    }
+  }, [isPlaying, images.length, fullscreenMode, playbackSpeed])
+
+  // 当图片列表发生变化时，重置播放索引
+  useEffect(() => {
+    setCurrentIndex(0)
+    setIsPlaying(false)
+  }, [images])
+
+  // 键盘事件监听器
+  useEffect(() => {
+    const handleKeyPress = (event: KeyboardEvent) => {
+      if (!fullscreenMode) return
+
+      switch (event.key) {
+        case ' ': // 空格键播放/暂停
+          event.preventDefault()
+          setIsPlaying(!isPlaying)
+          break
+        case 'ArrowLeft': // 左箭头上一张
+          event.preventDefault()
+          setCurrentIndex(prev => (prev - 1 + images.length) % images.length)
+          break
+        case 'ArrowRight': // 右箭头下一张
+          event.preventDefault()
+          setCurrentIndex(prev => (prev + 1) % images.length)
+          break
+        case 'Escape': // ESC键退出全屏
+          event.preventDefault()
+          setFullscreenMode(false)
+          setIsPlaying(false)
+          setCurrentIndex(0)
+          break
+      }
+    }
+
+    if (fullscreenMode) {
+      window.addEventListener('keydown', handleKeyPress)
+      return () => window.removeEventListener('keydown', handleKeyPress)
+    }
+  }, [fullscreenMode, isPlaying, images.length])
+
+  // 播放时自动滚动到当前图片
+  useEffect(() => {
+    if (isPlaying && images.length > 0) {
+      const currentImageElement = document.querySelector(`[data-image-index="${currentIndex}"]`)
+      if (currentImageElement) {
+        currentImageElement.scrollIntoView({
+          behavior: 'smooth',
+          block: 'center',
+          inline: 'center'
+        })
+      }
+    }
+  }, [currentIndex, isPlaying, images.length])
 
   // 处理标签筛选
   const handleTagChange = (tagName: string) => {
@@ -243,6 +382,56 @@ const Gallery: React.FC = () => {
           </Select>
         </FormControl>
 
+        {/* 播放控制按钮 */}
+        {images.length > 0 && (
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Button
+              variant={isPlaying ? "outlined" : "contained"}
+              color="primary"
+              startIcon={isPlaying ? <Pause /> : <PlayArrow />}
+              onClick={() => {
+                setIsPlaying(!isPlaying)
+                if (!isPlaying) {
+                  setFullscreenMode(true) // 开始播放时进入全屏模式
+                }
+              }}
+              size="small"
+            >
+              {isPlaying ? '暂停' : '循环播放'}
+            </Button>
+            {isPlaying && (
+              <Button
+                variant="outlined"
+                color="secondary"
+                startIcon={<Stop />}
+                onClick={() => {
+                  setIsPlaying(false)
+                  setCurrentIndex(0)
+                  setFullscreenMode(false)
+                }}
+                size="small"
+              >
+                停止
+              </Button>
+            )}
+            {!isPlaying && (
+              <Button
+                variant="outlined"
+                startIcon={<Fullscreen />}
+                onClick={() => setFullscreenMode(true)}
+                size="small"
+              >
+                全屏浏览
+              </Button>
+            )}
+            {isPlaying && (
+              <Typography variant="body2" color="text.secondary" sx={{ ml: 1 }}>
+                播放中: {currentIndex + 1} / {images.length}
+              </Typography>
+            )}
+          </Box>
+        )}
+
         {/* 批量操作工具栏 */}
         {selectedImages.size > 0 && (
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, ml: 'auto' }}>
@@ -304,15 +493,20 @@ const Gallery: React.FC = () => {
         }
       >
         <Box className="image-grid">
-          {images.map((image) => (
+          {images.map((image, index) => (
             <Card
               key={image.id}
-              className="image-card"
-              sx={{ 
+              className={`image-card ${isPlaying && index === currentIndex ? 'playing' : ''}`}
+              data-image-index={index}
+              sx={{
                 cursor: 'pointer',
                 position: 'relative',
-                border: selectedImages.has(image.id) ? '2px solid' : 'none',
-                borderColor: 'primary.main'
+                border: selectedImages.has(image.id) ? '2px solid' : (isPlaying && index === currentIndex ? '4px solid' : 'none'),
+                borderColor: selectedImages.has(image.id) ? 'primary.main' : (isPlaying && index === currentIndex ? '#1976d2' : 'primary.main'),
+                boxShadow: isPlaying && index === currentIndex ? '0 0 30px rgba(25, 118, 210, 0.8)' : 'none',
+                transform: isPlaying && index === currentIndex ? 'scale(1.05)' : 'scale(1)',
+                transition: 'all 0.3s ease',
+                zIndex: isPlaying && index === currentIndex ? 10 : 1
               }}
             >
               {/* 选择复选框 */}
@@ -438,6 +632,241 @@ const Gallery: React.FC = () => {
           </DialogActions>
         </Dialog>
       )}
+
+      {/* 全屏播放模式 */}
+      <Backdrop
+        sx={{
+          color: '#fff',
+          zIndex: (theme) => theme.zIndex.drawer + 1,
+          bgcolor: 'rgba(0, 0, 0, 0.95)'
+        }}
+        open={fullscreenMode}
+        onClick={(e) => {
+          // 点击背景区域时，如果不在控制面板上，则退出全屏
+          if (!(e.target as HTMLElement).closest('.playback-controls')) {
+            setFullscreenMode(false)
+            setIsPlaying(false)
+            setCurrentIndex(0)
+          }
+        }}
+      >
+        <Fade in={fullscreenMode} timeout={500}>
+          <Box sx={{
+            width: '100%',
+            height: '100vh',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            position: 'relative'
+          }}>
+            {/* 关闭按钮 */}
+            <IconButton
+              onClick={() => {
+                setFullscreenMode(false)
+                setIsPlaying(false)
+                setCurrentIndex(0)
+              }}
+              sx={{
+                position: 'absolute',
+                top: 20,
+                right: 20,
+                color: 'white',
+                bgcolor: 'rgba(0, 0, 0, 0.5)',
+                '&:hover': {
+                  bgcolor: 'rgba(0, 0, 0, 0.7)'
+                }
+              }}
+            >
+              <Close />
+            </IconButton>
+
+            {/* 当前播放的大图 */}
+            {images.length > 0 && images[currentIndex] && (
+              <Box sx={{
+                maxWidth: '80%',
+                maxHeight: '70%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                mb: 4,
+                position: 'relative'
+              }}>
+                <Box
+                  sx={{
+                    position: 'relative',
+                    borderRadius: '12px',
+                    overflow: 'hidden',
+                    boxShadow: '0 20px 60px rgba(0, 0, 0, 0.8)',
+                    animation: isPlaying ? 'slideIn 0.5s ease-out' : 'none',
+                    '&::before': {
+                      content: '""',
+                      position: 'absolute',
+                      top: 0,
+                      left: 0,
+                      right: 0,
+                      bottom: 0,
+                      background: 'linear-gradient(45deg, transparent 30%, rgba(255,255,255,0.1) 50%, transparent 70%)',
+                      animation: isPlaying ? 'shine 3s infinite' : 'none'
+                    }
+                  }}
+                >
+                  <img
+                    src={images[currentIndex].thumbnail}
+                    alt={images[currentIndex].filename}
+                    style={{
+                      maxWidth: '100%',
+                      maxHeight: '100%',
+                      objectFit: 'contain',
+                      display: 'block',
+                      transition: 'all 0.5s ease'
+                    }}
+                  />
+                </Box>
+
+                {/* 播放指示器 */}
+                {isPlaying && (
+                  <Box
+                    sx={{
+                      position: 'absolute',
+                      top: 20,
+                      left: 20,
+                      bgcolor: 'rgba(0, 0, 0, 0.7)',
+                      color: 'white',
+                      px: 2,
+                      py: 1,
+                      borderRadius: '20px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 1,
+                      fontSize: '0.9rem',
+                      backdropFilter: 'blur(10px)'
+                    }}
+                  >
+                    <PlayArrow sx={{ fontSize: '1rem' }} />
+                    播放中
+                  </Box>
+                )}
+              </Box>
+            )}
+
+            {/* 标签显示 */}
+            {images.length > 0 && images[currentIndex] && images[currentIndex].tags.length > 0 && (
+              <Box sx={{
+                position: 'absolute',
+                top: 100,
+                left: '50%',
+                transform: 'translateX(-50%)',
+                textAlign: 'center',
+                color: 'white',
+                maxWidth: '80%',
+                animation: 'slideIn 0.5s ease-out'
+              }}>
+                <Box sx={{ display: 'flex', justifyContent: 'center', gap: 1, flexWrap: 'wrap' }}>
+                  {images[currentIndex].tags.slice(0, 5).map((tag) => (
+                    <Chip
+                      key={tag.id}
+                      label={tag.name}
+                      size="small"
+                      sx={{
+                        bgcolor: 'rgba(255, 255, 255, 0.2)',
+                        color: 'white',
+                        border: '1px solid rgba(255, 255, 255, 0.3)',
+                        fontSize: '0.9rem',
+                        py: 1
+                      }}
+                    />
+                  ))}
+                </Box>
+              </Box>
+            )}
+
+            {/* 播放控制面板 */}
+            <Box
+              className="playback-controls"
+              sx={{
+                position: 'absolute',
+                bottom: 40,
+                left: '50%',
+                transform: 'translateX(-50%)',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 2,
+                bgcolor: 'rgba(0, 0, 0, 0.8)',
+                borderRadius: '50px',
+                px: 4,
+                py: 2,
+                minWidth: '500px',
+                backdropFilter: 'blur(15px)',
+                border: '1px solid rgba(255, 255, 255, 0.1)',
+                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)'
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* 上一张按钮 */}
+              <IconButton
+                onClick={() => {
+                  setCurrentIndex(prev => (prev - 1 + images.length) % images.length)
+                }}
+                sx={{ color: 'white' }}
+              >
+                <SkipPrevious />
+              </IconButton>
+
+              {/* 播放/暂停按钮 */}
+              <IconButton
+                onClick={() => setIsPlaying(!isPlaying)}
+                sx={{
+                  color: 'white',
+                  bgcolor: 'primary.main',
+                  '&:hover': { bgcolor: 'primary.dark' },
+                  width: 56,
+                  height: 56
+                }}
+              >
+                {isPlaying ? <Pause /> : <PlayArrow />}
+              </IconButton>
+
+              {/* 下一张按钮 */}
+              <IconButton
+                onClick={() => {
+                  setCurrentIndex(prev => (prev + 1) % images.length)
+                }}
+                sx={{ color: 'white' }}
+              >
+                <SkipNext />
+              </IconButton>
+
+              {/* 播放信息 */}
+              <Typography variant="body1" sx={{ color: 'white', ml: 2, minWidth: '100px' }}>
+                {currentIndex + 1} / {images.length}
+              </Typography>
+            </Box>
+
+            {/* 播放进度条 */}
+            <Box sx={{
+              position: 'absolute',
+              bottom: 0,
+              left: 0,
+              right: 0,
+              height: '4px'
+            }}>
+              <LinearProgress
+                variant="determinate"
+                value={(currentIndex + 1) / images.length * 100}
+                sx={{
+                  height: '4px',
+                  bgcolor: 'rgba(255, 255, 255, 0.2)',
+                  '& .MuiLinearProgress-bar': {
+                    bgcolor: 'primary.main',
+                    transition: 'transform 0.3s ease'
+                  }
+                }}
+              />
+            </Box>
+          </Box>
+        </Fade>
+      </Backdrop>
     </Box>
   )
 }
