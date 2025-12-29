@@ -1973,17 +1973,6 @@ def _calculate_image_relevance(query, image, qwen_client):
     return score
 \end{lstlisting}
 
-\subsection{MCP接口应用场景}
-
-MCP接口适用于以下场景：
-
-\begin{itemize}
-    \item \textbf{智能助手集成}：与ChatGPT、Claude等大模型集成
-    \item \textbf{自动化工作流}：在工作流中自动检索相关图片
-    \item \textbf{内容管理系统}：为CMS系统提供智能图片搜索能力
-    \item \textbf{开发者工具}：为开发者提供程序化图片检索接口
-\end{itemize}
-
 \newpage
 
 % 效果展示
@@ -2129,6 +2118,44 @@ MCP接口适用于以下场景：
     \includegraphics[width=0.8\textwidth]{filter.png}
     \caption{图片筛选功能界面}
 \end{figure}
+
+\subsection{移动端展示效果}
+
+\subsubsection{响应式设计展示}
+
+系统采用响应式设计，在手机等移动设备上同样提供良好的用户体验。以下展示了在手机上的主要功能界面效果：
+
+\begin{figure}[H]
+    \centering
+    \begin{minipage}{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{phone_sign_in.png}
+        \caption{手机端登录界面}
+    \end{minipage}
+    \hfill
+    \begin{minipage}{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{phone_pic_list.png}
+        \caption{手机端图片库界面}
+    \end{minipage}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \begin{minipage}{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{phone_pic.png}
+        \caption{手机端图片详情界面}
+    \end{minipage}
+    \hfill
+    \begin{minipage}{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{phone_config.png}
+        \caption{手机端设置界面}
+    \end{minipage}
+\end{figure}
+
+系统在移动设备上保持了完整的桌面端功能，包括图片上传、浏览、编辑、筛选等操作。通过Material-UI的响应式组件和自适应布局，确保在不同屏幕尺寸下都能提供良好的用户体验。
 
 \subsection{系统管理界面}
 
