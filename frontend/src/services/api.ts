@@ -80,6 +80,9 @@ export const imageAPI = {
   deleteImage: (id: number) =>
     api.post(`/images/${id}/delete`),
 
+  batchDeleteImages: (imageIds: number[]) =>
+    api.post('/images/batch-delete', { image_ids: imageIds }),
+
   restoreImage: (id: number) =>
     api.post(`/images/${id}/restore`),
 }

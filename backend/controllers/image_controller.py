@@ -445,6 +445,64 @@ def delete_image(image_id):
     finally:
         session.close()
 
+def batch_delete_images():
+    """批量删除图片（软删除）"""
+    data = request.get_json()
+    if not data or 'image_ids' not in data:
+        return jsonify({'error': '请提供要删除的图片ID列表'}), 400
+
+    image_ids = data.get('image_ids', [])
+    if not image_ids or not isinstance(image_ids, list):
+        return jsonify({'error': '图片ID列表格式错误'}), 400
+
+    session = get_db()
+    deleted_count = 0
+    failed_ids = []
+    
+    try:
+        # 查询所有要删除的图片
+        images = session.query(Image).filter(
+            Image.id.in_(image_ids),
+            Image.is_deleted == False
+        ).all()
+
+        for image in images:
+            # 检查权限
+            if image.user_id != g.current_user.id and g.current_user.role != 'admin':
+                failed_ids.append({
+                    'id': image.id,
+                    'error': '权限不足'
+                })
+                continue
+
+            # 执行软删除
+            image.is_deleted = True
+
+            # 记录删除操作
+            edit_record = ImageEdit(
+                image_id=image.id,
+                operation='delete',
+                backup_path=None,
+                edit_params=json.dumps({'deleted': True, 'batch': True})
+            )
+            session.add(edit_record)
+            deleted_count += 1
+
+        session.commit()
+
+        return jsonify({
+            'message': f'成功删除 {deleted_count} 张图片',
+            'deleted_count': deleted_count,
+            'failed': failed_ids
+        })
+
+    except Exception as e:
+        session.rollback()
+        logger.error(f"批量删除失败: {e}", exc_info=True)
+        return jsonify({'error': f'批量删除失败: {str(e)}'}), 500
+    finally:
+        session.close()
+
 def restore_image(image_id):
     """恢复图片"""
     session = get_db()

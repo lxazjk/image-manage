@@ -59,7 +59,7 @@ def create_app(config_file=None):
 
     # 临时手动注册路由进行测试
     from .controllers.auth_controller import login, register
-    from .controllers.image_controller import upload_images, get_images, get_image_detail, edit_image, delete_image, restore_image
+    from .controllers.image_controller import upload_images, get_images, get_image_detail, edit_image, delete_image, batch_delete_images, restore_image
     from .controllers.user_controller import get_users, approve_user, update_user_role
     from .controllers.tag_controller import get_tags, create_tag, add_tags_to_image, remove_tags_from_image
     from .controllers.config_controller import get_config, update_config, test_qwen_connection
@@ -79,6 +79,7 @@ def create_app(config_file=None):
     app.add_url_rule('/api/v1/images/<int:image_id>', 'get_image_detail', get_image_detail, methods=['GET'])
     app.add_url_rule('/api/v1/images/<int:image_id>/edit', 'edit_image', edit_image, methods=['POST'])
     app.add_url_rule('/api/v1/images/<int:image_id>/delete', 'delete_image', delete_image, methods=['POST'])
+    app.add_url_rule('/api/v1/images/batch-delete', 'batch_delete_images', batch_delete_images, methods=['POST'])
     app.add_url_rule('/api/v1/images/<int:image_id>/restore', 'restore_image', restore_image, methods=['POST'])
 
     # 标签路由
