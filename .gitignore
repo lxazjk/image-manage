@@ -71,4 +71,6 @@ create_admin.py
 *.toc
 *.aux
 *.log
+*.out
 *.synctex.gz
+tmp/

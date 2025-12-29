@@ -12,7 +12,7 @@ from flask_cors import CORS
 from database import init_db
 from config import Config
 from auth import init_auth_manager
-from controllers import auth_controller, user_controller, image_controller, tag_controller, config_controller
+from controllers import auth_controller, user_controller, image_controller, tag_controller, config_controller, mcp_controller
 
 # 配置日志
 logging.basicConfig(
@@ -63,6 +63,7 @@ def create_app(config_file=None):
     from .controllers.user_controller import get_users, approve_user, update_user_role
     from .controllers.tag_controller import get_tags, create_tag, add_tags_to_image, remove_tags_from_image
     from .controllers.config_controller import get_config, update_config, test_qwen_connection
+    from .controllers.mcp_controller import get_mcp_tools, call_mcp_tool
 
     # 认证路由
     app.add_url_rule('/api/v1/auth/login', 'login', login, methods=['POST'])
@@ -92,6 +93,10 @@ def create_app(config_file=None):
     app.add_url_rule('/api/v1/config', 'get_config', get_config, methods=['GET'])
     app.add_url_rule('/api/v1/config', 'update_config', update_config, methods=['PUT'])
     app.add_url_rule('/api/v1/config/test-qwen', 'test_qwen_connection', test_qwen_connection, methods=['POST'])
+
+    # MCP路由
+    app.add_url_rule('/api/v1/mcp/tools', 'get_mcp_tools', get_mcp_tools, methods=['GET'])
+    app.add_url_rule('/api/v1/mcp/call', 'call_mcp_tool', call_mcp_tool, methods=['POST'])
 
     # 注册API路由
     # connexion_app.add_api('api.yaml')

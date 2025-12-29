@@ -1,49 +1,106 @@
-\documentclass[12pt,a4paper]{article}
+\documentclass[cs4size,a4paper]{ctexart}
 
-% 导入必要的宏包
-\usepackage[english]{babel}
-\usepackage{xeCJK}
-\setCJKmainfont{SimSun} % 设置中文字体
-\usepackage{geometry}
-\geometry{margin=1in}
-
-% 代码高亮
-\usepackage{listings}
-\usepackage{xcolor}
-\usepackage{textcomp}
-
-% 数学和符号
-\usepackage{amsmath}
-\usepackage{amssymb}
-
-% 图形和图片
-\usepackage{graphicx}
-\usepackage{float}
-\usepackage{tikz}
-\usetikzlibrary{shapes,arrows,positioning,decorations.pathreplacing,shapes.geometric}
-\usepackage{subcaption}
-
-% 表格增强
-\usepackage{booktabs}
-\usepackage{multirow}
-\usepackage{tabularx}
-\usepackage{array}
-
-% 超链接
-\usepackage{hyperref}
-\hypersetup{
-    colorlinks=true,
-    linkcolor=blue,
-    filecolor=magenta,
-    urlcolor=cyan,
-}
-
-% 页眉页脚
+%==================== 基本格式预置 ===========================
 \usepackage{fancyhdr}
 \pagestyle{fancy}
 \fancyhf{}
-\fancyhead[L]{\leftmark}
-\fancyhead[R]{\thepage}
+\fancyhead[C]{\zihao{5}  \kaishu 图片管理系统开发报告}
+\fancyfoot[C]{~\zihao{5} \thepage~}
+\renewcommand{\headrulewidth}{0.65pt}
+
+\CTEXsetup[format={\centering\bfseries\zihao{-2}},name={第, 章}]{section}
+\CTEXsetup[nameformat={\bfseries\zihao{3}}]{subsection}
+\CTEXsetup[nameformat={\bfseries\zihao{4}}]{subsubsection}
+
+%==================== 数学符号公式 ============
+\usepackage{amsmath}                 % AMS LaTeX宏包
+\usepackage[style=1]{mdframed}
+\usepackage{amsthm}
+\usepackage{amsfonts}
+\usepackage{mathrsfs}                % 英文花体字 体
+\usepackage{bm}                      % 数学公式中的黑斜体
+\usepackage{bbding,manfnt}           % 一些图标，如 \dbend
+\usepackage{lettrine}                % 首字下沉，命令\lettrine
+\def\attention{\lettrine[lines=2,lraise=0,nindent=0em]{\large\textdbend\hspace{1mm}}{}}
+\usepackage{longtable}
+\usepackage[toc,page]{appendix}
+
+%==================== 页边距设置 ============
+\usepackage{geometry}                % 页边距调整
+\geometry{top=3.0cm,bottom=2.7cm,left=2.5cm,right=2.5cm}
+
+%====================公式按章编号==========================
+\numberwithin{equation}{section}
+\numberwithin{table}{section}
+\numberwithin{figure}{section}
+
+%================== 图形支持宏包 =========================
+\usepackage{subfigure}
+\usepackage{graphicx}                % 嵌入png图像
+\usepackage{color,xcolor}            % 支持彩色文本、底色、文本框等
+\usepackage{hyperref}                % 交叉引用
+\usepackage{caption}
+\usepackage{tabularx}                % 表格支持
+\captionsetup{figurewithin=section}
+\graphicspath{{./doc/figure/}}           % 指定图片所在文件夹
+
+%==================== 源码和流程图 =====================
+\usepackage{listings}                % 粘贴源代码
+\usepackage{xcolor}
+\usepackage{color}
+\definecolor{dkgreen}{rgb}{0,0.6,0}
+\definecolor{gray}{rgb}{0.5,0.5,0.5}
+\definecolor{mauve}{rgb}{0.58,0,0.82}
+\usepackage{xcolor}
+\lstset{
+  %行号
+    numbers=left,
+    %背景框
+    framexleftmargin=8mm,
+    frame=none,
+     %背景色
+    %backgroundcolor=\color[rgb]{1,1,0.76},
+     backgroundcolor=\color[RGB]{245,245,244},
+     %样式
+   keywordstyle=\bf\color{blue},
+   identifierstyle=\bf,
+    numberstyle=\color[RGB]{0,192,192},
+    commentstyle=\it\color[RGB]{0,96,96},
+   stringstyle=\rmfamily\slshape\color[RGB]{128,0,0},
+   %显示空格
+    showstringspaces=false
+}
+
+%--------------------
+\hypersetup{hidelinks}
+\usepackage{booktabs}
+\usepackage{shorttoc}
+\usepackage{tabu,tikz}
+\usepackage{float}
+\usepackage{multirow}
+
+\tabcolsep=1ex
+
+\newcommand{\tabincell}[2]{\begin{tabular}{@{}#1@{}}#2\end{tabular}}%
+\usepackage{CJK}
+\usepackage{ifthen}
+\usepackage{graphicx}
+%更改颜色测试
+\newcommand{\HRule}{\rule{\linewidth}{0.5mm}}
+
+\newtheorem{Theorem}{定理}
+\newtheorem{Lemma}{引理}
+%%使得公式随章节自动编号
+\makeatletter
+\@addtoreset{equation}{section}
+\makeatother
+\renewcommand{\theequation}{\arabic{section}.\arabic{equation}}
+
+%-------------------------
+\usepackage{pythonhighlight}
+\usepackage{tikz}
+\usepackage{tikz-3dplot}
+\usetikzlibrary{shapes,arrows,positioning}
 
 % 代码样式设置
 \lstset{
@@ -114,91 +171,119 @@
     showstringspaces=false
 }
 
-\title{\Huge 图片管理系统开发报告}
-\author{开发团队}
-\date{\today}
-
+%===================   正文开始    ===================
 \begin{document}
 
-% 封面
-\maketitle
+%===================  定理类环境定义 ===================
+\newtheorem{example}{例}              % 整体编号
+\newtheorem{algorithm}{算法}
+\newtheorem{theorem}{定理}            % 按 section 编号
+\newtheorem{definition}{定义}
+\newtheorem{axiom}{公理}
+\newtheorem{property}{性质}
+\newtheorem{proposition}{命题}
+\newtheorem{lemma}{引理}
+\newtheorem{corollary}{推论}
+\newtheorem{remark}{注解}
+\newtheorem{condition}{条件}
+\newtheorem{conclusion}{结论}
+\newtheorem{assumption}{假设}
+
+%==================重定义 ===================
+\renewcommand{\contentsname}{目录}
+\renewcommand{\abstractname}{摘要}
+\renewcommand{\refname}{参考文献}
+\renewcommand{\indexname}{索引}
+\renewcommand{\figurename}{图}
+\renewcommand{\tablename}{表}
+\renewcommand{\appendixname}{附录}
+\renewcommand{\proofname}{证明}
+
+%============== 封皮和前言 =================
+\begin{titlepage}
+
+\begin{center}
+
+
+% Upper part of the page
+\includegraphics[width=0.65\textwidth]{zju_logo}\\[1cm]
+
+\textsc{\LARGE College of Computer Science and Technology}\\[0.5cm]
+\textsc{\zihao{-2} \heiti 计算机科学与技术学院}\\[1.5cm]
+
+\textsc{\Large Development Report}\\[0.5cm]
+
+
+% Title
+\HRule \\[0.4cm]
+{ \huge \bfseries 图片管理系统开发报告
+}
+%\\[0.4cm]
+
+\HRule \\[1.5cm]
+
+% Author and supervisor
+\begin{minipage}{0.4\textwidth}
+\begin{flushleft} \large
+\emph{Author:}\\
+\kaishu lxazjk\\
+\emph{Student ID:}\\
+\kaishu STUDENT_ID
+\end{flushleft}
+\end{minipage}
+\begin{minipage}{0.4\textwidth}
+\begin{flushright} \large
+\emph{Report topic:} \\
+\kaishu 图片管理系统 \\
+\emph{Teacher:} \\
+\kaishu 胡晓军
+\end{flushright}
+\end{minipage}
+
+\vfill
+
+% Bottom of the page
+{\large \today}
+
+\end{center}
+
+\end{titlepage}
+
+\pagestyle{plain}
+\pagenumbering{Roman}
+\pagestyle{empty}
+\tableofcontents
 \thispagestyle{empty}
 \newpage
 
-% 摘要
-\section*{摘要}
-
-本报告详细介绍了基于Python Flask和React的全栈图片管理系统的设计、实现和部署过程。该系统提供了完整的用户管理、图片上传处理、AI智能标签生成等功能，支持多种图片格式和响应式Web界面。
-
-\textbf{关键词：} 图片管理系统，Flask，React，AI标签生成，REST API
-
-\newpage
-
-% 目录
-\tableofcontents
-\newpage
-
-% 代码目录
-\section{代码目录}
-
-本报告包含的主要代码示例及其功能说明：
-
-\begin{itemize}
-    \item \textbf{Flask应用初始化} - 后端应用的核心启动逻辑
-    \item \textbf{数据库模型定义} - 用户、图片、标签等数据结构
-    \item \textbf{React主组件} - 前端页面路由和状态管理
-    \item \textbf{文件上传组件} - 拖拽上传的用户界面
-    \item \textbf{用户认证接口} - 登录注册API实现
-    \item \textbf{图片上传处理} - 文件存储和元数据提取
-    \item \textbf{EXIF数据提取} - 图片元信息解析
-    \item \textbf{AI标签生成} - 通义千问API集成
-    \item \textbf{标签管理API} - 标签的增删改查操作
-    \item \textbf{系统配置} - YAML配置文件示例
-    \item \textbf{启动脚本} - 应用启动逻辑
-    \item \textbf{Docker配置} - 容器化部署配置
-    \item \textbf{依赖管理} - Python和前端依赖列表
-    \item \textbf{部署命令} - 本地和容器化启动方式
-    \item \textbf{效果展示} - 系统界面和功能演示
-\end{itemize}
-
-\newpage
+%============== 论文正文   =================
+\pagestyle{fancy}
+\pagenumbering{arabic}
 
 % 项目概述
 \section{项目概述}
 
-\subsection{项目背景}
+本项目旨在开发一个基于Flask和React的全栈图片管理系统，集成AI技术实现智能图片管理和标签生成。
 
-随着数字媒体的快速发展，个人和企业需要高效的管理大量图片文件。本项目旨在开发一个功能完整、易于使用的图片管理系统，具备以下核心特性：
+\subsection{核心功能}
 
+系统具备以下核心功能：
 \begin{itemize}
-    \item 用户注册登录和权限管理
-    \item 批量图片上传和处理
-    \item 智能EXIF信息提取
-    \item AI自动标签生成
-    \item 响应式Web界面
-    \item 完整的API接口
+    \item \textbf{用户管理}：注册登录、权限控制、角色管理
+    \item \textbf{图片处理}：批量上传、EXIF提取、格式转换、裁剪编辑
+    \item \textbf{AI智能}：自动标签生成、图像识别、内容分析
+    \item \textbf{MCP接口}：大模型对话式图片检索、语义搜索、自然语言查询
+    \item \textbf{界面设计}：响应式Web界面、Material-UI组件库
+    \item \textbf{API服务}：RESTful API、第三方集成支持
 \end{itemize}
 
-\subsection{系统目标}
+\subsection{技术架构}
 
-\begin{enumerate}
-    \item 提供直观易用的图片管理界面
-    \item 支持多种图片格式和批量操作
-    \item 集成AI技术实现智能标签生成
-    \item 确保数据安全和用户隐私
-    \item 提供完整的REST API供第三方集成
-\end{enumerate}
-
-\subsection{项目范围}
-
-系统包含以下主要模块：
 \begin{itemize}
-    \item 用户认证和管理模块
-    \item 图片上传和存储模块
-    \item 图片处理和编辑模块
-    \item AI标签生成模块
-    \item 前端展示和管理界面
-    \item 系统配置和管理模块
+    \item \textbf{后端}：Python Flask + SQLAlchemy + JWT认证
+    \item \textbf{前端}：React + TypeScript + Material-UI
+    \item \textbf{AI服务}：通义千问VL API集成
+    \item \textbf{部署}：Docker容器化、MySQL/SQLite数据库
 \end{itemize}
 
 \newpage
@@ -213,33 +298,117 @@
 \begin{figure}[H]
     \centering
     \begin{tikzpicture}[
-        node distance=1.5cm,
-        auto,
-        thick,
-        main node/.style={rectangle, draw, fill=blue!20, text width=3cm, text centered, rounded corners, minimum height=1cm},
-        db node/.style={cylinder, draw, fill=green!20, text width=2.5cm, text centered, minimum height=1cm},
-        storage node/.style={rectangle, draw, fill=orange!20, text width=2.5cm, text centered, rounded corners, minimum height=1cm}
+        main node/.style={
+            rectangle,
+            draw=blue!60,
+            fill=blue!10,
+            text width=3.8cm,
+            text centered,
+            rounded corners=10pt,
+            minimum height=1.2cm,
+            font=\small,
+            inner sep=8pt
+        },
+        db node/.style={
+            cylinder,
+            draw=green!60,
+            fill=green!10,
+            text width=3.8cm,
+            text centered,
+            minimum height=1.2cm,
+            font=\small,
+            aspect=0.6,
+            inner sep=8pt
+        },
+        storage node/.style={
+            rectangle,
+            draw=orange!60,
+            fill=orange!10,
+            text width=3.5cm,
+            text centered,
+            rounded corners=8pt,
+            minimum height=1.1cm,
+            font=\small,
+            inner sep=6pt
+        },
+        ai node/.style={
+            rectangle,
+            draw=red!60,
+            fill=red!10,
+            text width=3.5cm,
+            text centered,
+            rounded corners=10pt,
+            minimum height=1.1cm,
+            font=\small,
+            inner sep=6pt
+        },
+        browser node/.style={
+            rectangle,
+            draw=purple!60,
+            fill=purple!10,
+            text width=3.2cm,
+            text centered,
+            rounded corners=10pt,
+            minimum height=1.1cm,
+            font=\small,
+            inner sep=6pt
+        }
     ]
+
         % 前端层
-        \node[main node] (frontend) {React前端\\(TypeScript)};
-        
+        \node[main node] (frontend) at (0,0) {\textbf{React 前端}\\TypeScript + Material-UI};
+
         % 后端层
-        \node[main node, right=of frontend, xshift=2cm] (backend) {Flask后端API\\(Python)};
-        
+        \node[main node] (backend) at (6,0) {\textbf{Flask 后端}\\Python + SQLAlchemy};
+
         % 数据库层
-        \node[db node, below=of backend] (database) {数据库\\(MySQL/SQLite)};
-        
+        \node[db node] (database) at (6,-3.5) {\textbf{数据库层}\\MySQL / SQLite};
+
         % 存储层
-        \node[storage node, below=of database] (storage) {文件存储\\(本地磁盘)};
-        
-        % 浏览器
-        \node[main node, below=of frontend] (browser) {浏览器客户端};
-        
-        % 连接
-        \draw[->, thick] (frontend) -- node[above] {HTTP/REST API} (backend);
-        \draw[->, thick] (backend) -- node[right] {SQL查询} (database);
-        \draw[->, thick] (backend) -- node[right] {文件I/O} (storage);
-        \draw[->, thick] (browser) -- node[left] {HTTP请求} (frontend);
+        \node[storage node] (storage) at (6,-6.5) {\textbf{文件存储}\\本地磁盘};
+
+        % 浏览器客户端
+        \node[browser node] (browser) at (-4,-2) {\textbf{浏览器}\\客户端};
+
+        % AI服务层
+        \node[ai node] (ai) at (10,-2) {\textbf{AI 服务}\\通义千问 VL API};
+
+        % 连接线 - 使用更流畅的曲线
+        \draw[->, thick, blue!70, rounded corners=8pt]
+            (browser) -- ++(2,0.5) -- ++(0,0.5) -- ++(2,0)
+            node[midway, above, font=\scriptsize, blue!70] {HTTP} (frontend);
+
+        \draw[->, thick, blue!70, rounded corners=8pt]
+            (frontend) -- ++(1.5,0) -- ++(1.5,-0.5) -- ++(1.5,-0.5)
+            node[midway, above, font=\scriptsize, blue!70] {REST API} (backend);
+
+        \draw[->, thick, green!70, rounded corners=6pt]
+            (backend) -- ++(0,-1.2) -- ++(0,-1.2)
+            node[midway, right, font=\scriptsize, green!70] {SQL} (database);
+
+        \draw[->, thick, orange!70, rounded corners=6pt]
+            (database) -- ++(0,-1.2) -- ++(0,-1.2)
+            node[midway, right, font=\scriptsize, orange!70] {文件I/O} (storage);
+
+        \draw[->, thick, red!70, rounded corners=8pt]
+            (backend) -- ++(1.2,-0.5) -- ++(1.2,-0.5) -- ++(1.2,-0.5)
+            node[midway, above, font=\scriptsize, red!70] {API调用} (ai);
+
+        % 装饰性背景
+        \draw[fill=blue!15, opacity=0.4, rounded corners=12pt] (-1.2,-0.6) rectangle (1.2,0.6);
+        \draw[fill=green!15, opacity=0.4, rounded corners=12pt] (4.8,-3.9) rectangle (7.2,-3.1);
+        \draw[fill=orange!15, opacity=0.4, rounded corners=12pt] (4.8,-6.9) rectangle (7.2,-6.1);
+
+        % 图例 - 更清晰的位置
+        \node[font=\footnotesize, anchor=north east] at (11,-6.8) {
+            \begin{tabular}{@{}ll@{}}
+                \tikz{\draw[->, thick, blue!70] (0,0)--(0.6,0);} & HTTP通信 \\
+                \tikz{\draw[->, thick, green!70] (0,0)--(0.6,0);} & 数据库操作 \\
+                \tikz{\draw[->, thick, orange!70] (0,0)--(0.6,0);} & 文件操作 \\
+                \tikz{\draw[->, thick, red!70] (0,0)--(0.6,0);} & AI服务调用
+            \end{tabular}
+        };
+
     \end{tikzpicture}
     \caption{系统整体架构图}
 \end{figure}
@@ -318,6 +487,256 @@ class Image(Base):
 \subsubsection{React和TypeScript}
 
 前端采用React 18框架配合TypeScript，提供类型安全的组件开发。这个主组件负责整个应用的路由管理和全局状态协调。
+
+\begin{lstlisting}[language=JavaScript,caption=TypeScript类型定义]
+import React from 'react'
+
+// 用户类型定义
+export interface User {
+  id: number
+  username: string
+  email: string
+  role: 'pending' | 'user' | 'admin'
+}
+
+// 图片类型定义
+export interface Image {
+  id: number
+  filename: string
+  file_path: string
+  file_hash: string
+  file_size: number
+  mime_type: string
+  width?: number
+  height?: number
+  created_at: string
+  user_id?: number
+  tags: Tag[]
+  url?: string
+}
+
+// 标签类型定义
+export interface Tag {
+  id: number
+  name: string
+  created_at: string
+}
+
+// API响应类型
+export interface ApiResponse<T> {
+  data?: T
+  error?: string
+  message?: string
+}
+
+// 文件上传状态
+export interface UploadProgress {
+  filename: string
+  progress: number
+  status: 'pending' | 'uploading' | 'completed' | 'failed'
+  error?: string
+}
+\end{lstlisting}
+
+\subsubsection{API服务层}
+
+前端通过axios实现与后端的HTTP通信，提供了类型安全的数据获取和错误处理。
+
+\begin{lstlisting}[language=JavaScript,caption=API服务层实现]
+import axios from 'axios'
+import { User, Image, Tag, ApiResponse } from './types'
+
+// 创建axios实例
+const api = axios.create({
+  baseURL: process.env.REACT_APP_API_URL || 'http://localhost:8080',
+  timeout: 10000,
+  headers: {
+    'Content-Type': 'application/json'
+  }
+})
+
+// 请求拦截器：添加认证token
+api.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('token')
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`
+    }
+    return config
+  },
+  (error) => Promise.reject(error)
+)
+
+// 响应拦截器：处理认证错误
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      localStorage.removeItem('token')
+      localStorage.removeItem('user')
+      window.location.href = '/login'
+    }
+    return Promise.reject(error)
+  }
+)
+
+// 用户认证API
+export const authAPI = {
+  login: (username: string, password: string): Promise<ApiResponse<{token: string, user: User}>> =>
+    api.post('/api/auth/login', { username, password }),
+
+  register: (username: string, email: string, password: string): Promise<ApiResponse<{user_id: number}>> =>
+    api.post('/api/auth/register', { username, email, password }),
+
+  getCurrentUser: (): Promise<ApiResponse<User>> =>
+    api.get('/api/auth/me')
+}
+
+// 图片管理API
+export const imageAPI = {
+  upload: (files: FileList): Promise<ApiResponse<Image[]>> => {
+    const formData = new FormData()
+    Array.from(files).forEach(file => {
+      formData.append('files', file)
+    })
+    return api.post('/api/images/upload', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    })
+  },
+
+  getImages: (page = 1, limit = 20, tag?: string): Promise<ApiResponse<{images: Image[], total: number}>> =>
+    api.get('/api/images', { params: { page, limit, tag } }),
+
+  deleteImage: (id: number): Promise<ApiResponse<void>> =>
+    api.delete(`/api/images/${id}`)
+}
+
+// 标签管理API
+export const tagAPI = {
+  getTags: (): Promise<ApiResponse<Tag[]>> =>
+    api.get('/api/tags'),
+
+  createTag: (name: string): Promise<ApiResponse<Tag>> =>
+    api.post('/api/tags', { name }),
+
+  addTagsToImage: (imageId: number, tagIds: number[]): Promise<ApiResponse<void>> =>
+    api.post(`/api/images/${imageId}/tags`, { tag_ids: tagIds })
+}
+
+export default api
+\end{lstlisting}
+
+\subsubsection{认证上下文}
+
+使用React Context实现全局的用户状态管理，提供登录、登出和用户信息的统一管理。
+
+\begin{lstlisting}[language=JavaScript,caption=React认证上下文]
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react'
+import { User } from '../types'
+import { authAPI } from '../services/api'
+
+interface AuthContextType {
+  user: User | null
+  loading: boolean
+  login: (username: string, password: string) => Promise<void>
+  register: (username: string, email: string, password: string) => Promise<void>
+  logout: () => void
+}
+
+const AuthContext = createContext<AuthContextType | undefined>(undefined)
+
+export const useAuth = () => {
+  const context = useContext(AuthContext)
+  if (context === undefined) {
+    throw new Error('useAuth must be used within an AuthProvider')
+  }
+  return context
+}
+
+interface AuthProviderProps {
+  children: ReactNode
+}
+
+export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
+  const [user, setUser] = useState<User | null>(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const initAuth = async () => {
+      const token = localStorage.getItem('token')
+      const userData = localStorage.getItem('user')
+
+      if (token && userData) {
+        try {
+          // 验证token有效性
+          const response = await authAPI.getCurrentUser()
+          if (response.data) {
+            setUser(response.data)
+          } else {
+            // token无效，清除本地存储
+            localStorage.removeItem('token')
+            localStorage.removeItem('user')
+          }
+        } catch (error) {
+          // token无效，清除本地存储
+          localStorage.removeItem('token')
+          localStorage.removeItem('user')
+        }
+      }
+      setLoading(false)
+    }
+
+    initAuth()
+  }, [])
+
+  const login = async (username: string, password: string) => {
+    try {
+      const response = await authAPI.login(username, password)
+      if (response.data) {
+        const { token, user } = response.data
+        localStorage.setItem('token', token)
+        localStorage.setItem('user', JSON.stringify(user))
+        setUser(user)
+      } else {
+        throw new Error(response.error || '登录失败')
+      }
+    } catch (error) {
+      throw error
+    }
+  }
+
+  const register = async (username: string, email: string, password: string) => {
+    try {
+      const response = await authAPI.register(username, email, password)
+      if (!response.data) {
+        throw new Error(response.error || '注册失败')
+      }
+    } catch (error) {
+      throw error
+    }
+  }
+
+  const logout = () => {
+    localStorage.removeItem('token')
+    localStorage.removeItem('user')
+    setUser(null)
+  }
+
+  const value: AuthContextType = {
+    user,
+    loading,
+    login,
+    register,
+    logout
+  }
+
+  return (
+    <AuthContext.Provider value={value}>
+      {children}
+    </AuthContext.Provider>
+  )
+}
+\end{lstlisting}
 
 \begin{lstlisting}[language=JavaScript,caption=React应用主组件和路由管理]
 import React, { useState, useEffect } from 'react'
@@ -413,6 +832,33 @@ export default FileUpload
 \section{核心功能模块}
 
 \subsection{用户管理模块}
+
+\subsubsection{数据库模型设计}
+
+系统采用SQLAlchemy ORM框架，提供了类型安全和易于维护的数据模型。这个用户模型定义了用户的基本信息和权限角色。
+
+\begin{lstlisting}[language=Python,caption=用户数据模型定义]
+from sqlalchemy import Column, Integer, String, DateTime
+from sqlalchemy.ext.declarative import declarative_base
+from datetime import datetime
+
+Base = declarative_base()
+
+class User(Base):
+    """用户模型"""
+    __tablename__ = 'users'
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    username = Column(String(50), unique=True, nullable=False, index=True)
+    email = Column(String(120), unique=True, nullable=False, index=True)
+    password_hash = Column(String(255), nullable=False)
+    role = Column(String(20), default='pending', nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    last_login = Column(DateTime, nullable=True)
+
+    def __repr__(self):
+        return f'<User {self.username}>'
+\end{lstlisting}
 
 \subsubsection{用户注册和认证}
 
@@ -518,6 +964,127 @@ def login():
 \end{table}
 
 \subsection{图片处理模块}
+
+\subsubsection{图片数据模型}
+
+图片模型存储了图片的所有元数据，包括文件信息、尺寸、标签关联等。这个设计支持高效的查询和关联操作。
+
+\begin{lstlisting}[language=Python,caption=图片数据模型定义]
+from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Table
+from sqlalchemy.orm import relationship
+from sqlalchemy.ext.declarative import declarative_base
+
+Base = declarative_base()
+
+# 图片和标签的多对多关系表
+image_tags = Table('image_tags', Base.metadata,
+    Column('image_id', Integer, ForeignKey('images.id'), primary_key=True),
+    Column('tag_id', Integer, ForeignKey('tags.id'), primary_key=True)
+)
+
+class Image(Base):
+    """图片模型"""
+    __tablename__ = 'images'
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    filename = Column(String(255), nullable=False, index=True)
+    file_path = Column(String(500), nullable=False)
+    file_hash = Column(String(8), nullable=False, unique=True, index=True)
+    file_size = Column(Integer, nullable=False)
+    mime_type = Column(String(50), nullable=False)
+    width = Column(Integer, nullable=True)
+    height = Column(Integer, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    user_id = Column(Integer, ForeignKey('users.id'), nullable=True)
+
+    # 关联关系
+    user = relationship('User', backref='images')
+    tags = relationship('Tag', secondary=image_tags, backref='images')
+
+    def __repr__(self):
+        return f'<Image {self.filename}>'
+
+class Tag(Base):
+    """标签模型"""
+    __tablename__ = 'tags'
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    name = Column(String(100), unique=True, nullable=False, index=True)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+
+    def __repr__(self):
+        return f'<Tag {self.name}>'
+\end{lstlisting}
+
+\subsubsection{文件处理工具函数}
+
+系统提供了完整的文件处理工具函数，包括文件类型验证、安全文件名生成、存储路径管理等。
+
+\begin{lstlisting}[language=Python,caption=文件处理工具函数]
+import os
+import hashlib
+from werkzeug.utils import secure_filename
+from config import Config
+
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'bmp', 'webp'}
+
+def validate_image_file(filename):
+    """验证图片文件类型"""
+    if not filename:
+        return False
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+def generate_random_hash():
+    """生成8位随机哈希值"""
+    return hashlib.md5(os.urandom(16)).hexdigest()[:8]
+
+def get_storage_path(filename, file_hash):
+    """生成安全的存储路径"""
+    config = Config('config.yaml')
+    base_path = config.get('storage.base_path', './uploads')
+
+    # 创建年月日目录结构
+    from datetime import datetime
+    now = datetime.now()
+    date_path = f"{now.year}/{now.month:02d}/{now.day:02d}"
+
+    full_path = os.path.join(base_path, date_path, file_hash)
+    os.makedirs(full_path, exist_ok=True)
+
+    # 返回完整文件路径
+    safe_filename = secure_filename(filename)
+    return os.path.join(full_path, safe_filename)
+
+def save_uploaded_file(file, storage_path):
+    """安全保存上传的文件"""
+    file.save(storage_path)
+
+def get_image_info(image_path):
+    """获取图片的基本信息"""
+    try:
+        from PIL import Image as PILImage
+        with PILImage.open(image_path) as img:
+            width, height = img.size
+
+        stat = os.stat(image_path)
+        file_size = stat.st_size
+
+        # 获取MIME类型
+        import mimetypes
+        mime_type, _ = mimetypes.guess_type(image_path)
+        if not mime_type:
+            mime_type = 'application/octet-stream'
+
+        return {
+            'width': width,
+            'height': height,
+            'size': file_size,
+            'mime_type': mime_type
+        }
+    except Exception as e:
+        raise ValueError(f"无法获取图片信息: {e}")
+\end{lstlisting}
 
 \subsubsection{图片上传和存储}
 
@@ -645,6 +1212,97 @@ def extract_exif_data(image_path):
 \end{lstlisting}
 
 \subsection{AI标签生成模块}
+
+\subsubsection{配置管理系统}
+
+系统采用YAML配置文件管理所有参数，包括数据库连接、AI服务配置、文件存储路径等。这个配置类提供了类型安全和默认值处理。
+
+\begin{lstlisting}[language=Python,caption=配置管理系统实现]
+import yaml
+import os
+from typing import Any, Dict
+
+class Config:
+    """配置管理类"""
+
+    def __init__(self, config_file: str = 'config.yaml'):
+        self.config_file = config_file
+        self._config = {}
+        self._load_config()
+
+    def _load_config(self):
+        """加载配置文件"""
+        if os.path.exists(self.config_file):
+            try:
+                with open(self.config_file, 'r', encoding='utf-8') as f:
+                    self._config = yaml.safe_load(f) or {}
+            except Exception as e:
+                print(f"加载配置文件失败: {e}")
+                self._config = {}
+        else:
+            print(f"配置文件不存在: {self.config_file}")
+            self._config = {}
+
+    def get(self, key: str, default: Any = None) -> Any:
+        """获取配置值，支持点号分隔的嵌套键"""
+        keys = key.split('.')
+        value = self._config
+
+        for k in keys:
+            if isinstance(value, dict) and k in value:
+                value = value[k]
+            else:
+                return default
+
+        return value
+
+    def set(self, key: str, value: Any):
+        """设置配置值"""
+        keys = key.split('.')
+        config = self._config
+
+        for k in keys[:-1]:
+            if k not in config:
+                config[k] = {}
+            config = config[k]
+
+        config[keys[-1]] = value
+
+    def save(self):
+        """保存配置到文件"""
+        try:
+            with open(self.config_file, 'w', encoding='utf-8') as f:
+                yaml.dump(self._config, f, default_flow_style=False,
+                         allow_unicode=True, indent=2)
+        except Exception as e:
+            print(f"保存配置文件失败: {e}")
+
+# 默认配置
+DEFAULT_CONFIG = {
+    'database': {
+        'type': 'sqlite',
+        'sqlite': {'path': './data/image_manager.db'},
+        'mysql': {
+            'host': 'localhost',
+            'port': 3306,
+            'database': 'image_manager',
+            'username': 'appuser',
+            'password': 'apppassword'
+        }
+    },
+    'storage': {
+        'base_path': './uploads',
+        'backup_path': './backups',
+        'allowed_extensions': 'jpg,png,gif,jpeg,bmp,webp',
+        'thumbnail_size': 300
+    },
+    'jwt': {
+        'secret_key': 'change-this-in-production',
+        'algorithm': 'HS256',
+        'expiration_hours': 24
+    }
+}
+\end{lstlisting}
 
 \subsubsection{Qwen VL API集成}
 
@@ -841,28 +1499,217 @@ qwen:
 
 \subsection{部署脚本}
 
+\subsubsection{数据库初始化}
+
+系统提供了数据库初始化和迁移功能，支持SQLite和MySQL数据库的自动创建和表结构管理。
+
+\begin{lstlisting}[language=Python,caption=数据库初始化模块]
+from sqlalchemy import create_engine, MetaData
+from sqlalchemy.orm import sessionmaker, scoped_session
+from sqlalchemy.pool import StaticPool
+import os
+from config import Config
+
+_engine = None
+_session_factory = None
+
+def init_db(config: Config):
+    """初始化数据库连接"""
+    global _engine, _session_factory
+
+    db_type = config.get('database.type', 'sqlite')
+
+    if db_type == 'sqlite':
+        # SQLite数据库配置
+        db_path = config.get('database.sqlite.path', './data/image_manager.db')
+        os.makedirs(os.path.dirname(db_path), exist_ok=True)
+
+        database_url = f'sqlite:///{db_path}'
+
+        _engine = create_engine(
+            database_url,
+            connect_args={'check_same_thread': False},
+            poolclass=StaticPool,
+            echo=config.get('database.echo', False)
+        )
+    elif db_type == 'mysql':
+        # MySQL数据库配置
+        mysql_config = config.get('database.mysql', {})
+        database_url = (
+            f"mysql+pymysql://{mysql_config.get('username')}:{mysql_config.get('password')}"
+            f"@{mysql_config.get('host')}:{mysql_config.get('port')}/{mysql_config.get('database')}"
+        )
+
+        _engine = create_engine(
+            database_url,
+            pool_pre_ping=True,
+            pool_recycle=300,
+            echo=config.get('database.echo', False)
+        )
+    else:
+        raise ValueError(f"不支持的数据库类型: {db_type}")
+
+    # 创建会话工厂
+    _session_factory = scoped_session(
+        sessionmaker(bind=_engine, autoflush=False, autocommit=False)
+    )
+
+    # 创建所有表
+    from models import Base  # 导入所有模型
+    Base.metadata.create_all(bind=_engine)
+
+def get_db():
+    """获取数据库会话"""
+    if _session_factory is None:
+        raise RuntimeError("数据库未初始化，请先调用 init_db()")
+
+    session = _session_factory()
+    try:
+        yield session
+    finally:
+        session.close()
+
+def get_engine():
+    """获取数据库引擎"""
+    if _engine is None:
+        raise RuntimeError("数据库未初始化，请先调用 init_db()")
+    return _engine
+\end{lstlisting}
+
+\subsubsection{应用工厂模式}
+
+采用应用工厂模式创建Flask应用实例，支持不同配置环境的灵活部署。
+
+\begin{lstlisting}[language=Python,caption=Flask应用工厂实现]
+from flask import Flask
+from flask_cors import CORS
+import os
+
+def create_app(config_file=None):
+    """创建Flask应用实例"""
+
+    # 确定配置文件的路径
+    if config_file is None:
+        # 默认配置文件路径
+        config_file = os.environ.get('CONFIG_FILE', 'config.yaml')
+
+    # 加载配置
+    from config import Config
+    config = Config(config_file)
+
+    # 创建Flask应用
+    app = Flask(__name__)
+
+    # 配置CORS - 允许前端跨域访问
+    CORS(app, resources={
+        r"/api/*": {
+            "origins": ["http://localhost:3000", "http://127.0.0.1:3000"],
+            "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+            "allow_headers": ["Content-Type", "Authorization"],
+            "supports_credentials": True
+        }
+    })
+
+    # 加载配置到Flask应用
+    app.config['SECRET_KEY'] = config.get('jwt.secret_key')
+    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+    # 初始化数据库
+    from database import init_db
+    init_db(config)
+
+    # 注册蓝图
+    from controllers.auth_controller import auth_bp
+    from controllers.image_controller import image_bp
+    from controllers.tag_controller import tag_bp
+    from controllers.user_controller import user_bp
+    from controllers.config_controller import config_bp
+
+    app.register_blueprint(auth_bp, url_prefix='/api/auth')
+    app.register_blueprint(image_bp, url_prefix='/api/images')
+    app.register_blueprint(tag_bp, url_prefix='/api/tags')
+    app.register_blueprint(user_bp, url_prefix='/api/users')
+    app.register_blueprint(config_bp, url_prefix='/api/config')
+
+    # 注册错误处理器
+    @app.errorhandler(404)
+    def not_found(error):
+        return {'error': '资源不存在'}, 404
+
+    @app.errorhandler(500)
+    def internal_error(error):
+        return {'error': '服务器内部错误'}, 500
+
+    # 添加健康检查端点
+    @app.route('/health')
+    def health_check():
+        return {'status': 'healthy', 'timestamp': datetime.utcnow().isoformat()}
+
+    # 添加API文档端点（如果使用Swagger）
+    @app.route('/api/docs')
+    def api_docs():
+        return app.send_static_file('swagger.yaml')
+
+    return app
+\end{lstlisting}
+
 \subsubsection{后端启动脚本}
 
 \begin{lstlisting}[language=Python,caption=后端启动脚本]
 #!/usr/bin/env python3
 """
 图片管理系统后端服务
+支持多种启动模式和配置选项
 """
 
 import sys
 import os
+import argparse
 from app import create_app
 
-if __name__ == '__main__':
-    # 创建Flask应用
-    app = create_app()
+def main():
+    """主函数"""
+    parser = argparse.ArgumentParser(description='图片管理系统后端服务')
+    parser.add_argument('--config', '-c', default='config.yaml',
+                       help='配置文件路径 (默认: config.yaml)')
+    parser.add_argument('--host', default='0.0.0.0',
+                       help='监听主机 (默认: 0.0.0.0)')
+    parser.add_argument('--port', type=int, default=8080,
+                       help='监听端口 (默认: 8080)')
+    parser.add_argument('--debug', action='store_true',
+                       help='启用调试模式')
+    parser.add_argument('--reload', action='store_true',
+                       help='启用自动重载 (开发模式)')
 
-    # 启动服务器
-    app.run(
-        host='0.0.0.0',
-        port=8080,
-        debug=True
-    )
+    args = parser.parse_args()
+
+    # 设置环境变量
+    os.environ['CONFIG_FILE'] = args.config
+
+    try:
+        # 创建Flask应用
+        app = create_app(args.config)
+
+        print(f"启动图片管理系统后端服务...")
+        print(f"配置: {args.config}")
+        print(f"主机: {args.host}")
+        print(f"端口: {args.port}")
+        print(f"调试模式: {args.debug}")
+
+        # 启动服务器
+        app.run(
+            host=args.host,
+            port=args.port,
+            debug=args.debug,
+            use_reloader=args.reload and args.debug
+        )
+
+    except Exception as e:
+        print(f"启动失败: {e}", file=sys.stderr)
+        sys.exit(1)
+
+if __name__ == '__main__':
+    main()
 \end{lstlisting}
 
 \subsubsection{Docker部署}
@@ -996,171 +1843,291 @@ docker-compose down
 
 \newpage
 
+% MCP接口功能
+\section{MCP接口功能}
+
+\subsection{MCP接口概述}
+
+系统实现了Model Context Protocol (MCP) 接口，为大模型提供对话式图片检索能力。通过MCP接口，大模型可以像人类一样使用自然语言与图片管理系统进行交互，实现智能化的图片搜索和信息获取。
+
+\subsection{MCP工具列表}
+
+系统提供了三个核心的MCP工具：
+
+\begin{enumerate}
+    \item \textbf{search\_images}：基于自然语言的智能图片搜索
+    \item \textbf{get\_image\_details}：获取图片详细信息
+    \item \textbf{get\_available\_tags}：获取系统中的可用标签
+\end{enumerate}
+
+\subsubsection{智能图片搜索工具}
+
+该工具支持丰富的查询方式：
+
+\begin{itemize}
+    \item \textbf{描述性搜索}：支持自然语言描述，如"蓝天白云的风景照"、"室内人像照片"
+    \item \textbf{时间查询}：支持相对时间查询，如"昨天拍摄的照片"、"最近一周的图片"
+    \item \textbf{标签组合}：支持多个标签的组合查询
+    \item \textbf{排序选项}：支持按相关性、时间、文件大小排序
+\end{itemize}
+
+\begin{lstlisting}[language=Python,caption=MCP图片搜索工具接口定义]
+{
+    "name": "search_images",
+    "description": "根据自然语言描述搜索图片，支持多种搜索条件组合",
+    "inputSchema": {
+        "type": "object",
+        "properties": {
+            "query": {
+                "type": "string",
+                "description": "搜索查询，支持描述性语言，如'蓝天白云的风景照'"
+            },
+            "tags": {
+                "type": "array",
+                "items": {"type": "string"},
+                "description": "可选的标签过滤器"
+            },
+            "limit": {
+                "type": "integer",
+                "description": "返回结果数量限制，默认10",
+                "default": 10
+            }
+        },
+        "required": ["query"]
+    }
+}
+\end{lstlisting}
+
+\subsubsection{图片详情获取工具}
+
+提供完整的图片信息查询功能：
+
+\begin{lstlisting}[language=Python,caption=MCP图片详情工具接口]
+{
+    "name": "get_image_details",
+    "description": "获取图片的详细信息，包括EXIF数据、AI描述等",
+    "inputSchema": {
+        "type": "object",
+        "properties": {
+            "image_id": {
+                "type": "integer",
+                "description": "图片ID"
+            }
+        },
+        "required": ["image_id"]
+    }
+}
+\end{lstlisting}
+
+\subsection{MCP接口实现}
+
+MCP控制器实现了完整的工具调用流程：
+
+\begin{lstlisting}[language=Python,caption=MCP控制器核心实现]
+def call_mcp_tool():
+    """调用MCP工具"""
+    data = request.get_json()
+    tool_name = data['name']
+    arguments = data['arguments']
+
+    # 工具路由
+    if tool_name == 'search_images':
+        return search_images_tool(arguments)
+    elif tool_name == 'get_image_details':
+        return get_image_details_tool(arguments)
+    elif tool_name == 'get_available_tags':
+        return get_available_tags_tool(arguments)
+\end{lstlisting}
+
+\subsection{语义搜索算法}
+
+系统实现了基于多维度相关性的智能搜索算法：
+
+\begin{enumerate}
+    \item \textbf{标签匹配}：检查查询关键词与图片标签的匹配度
+    \item \textbf{内容分析}：分析AI生成的图片描述与查询的相关性
+    \item \textbf{时间权重}：根据拍摄时间给予不同的相关性权重
+    \item \textbf{位置信息}：结合地理位置信息进行智能匹配
+\end{enumerate}
+
+\begin{lstlisting}[language=Python,caption=语义搜索相关性计算]
+def _calculate_image_relevance(query, image, qwen_client):
+    """计算图片与查询的相关性得分"""
+    score = 0.0
+
+    # 标签匹配得分 (最高权重)
+    for tag in image.tags:
+        if tag.name.lower() in query.lower():
+            score += 3.0
+
+    # AI描述匹配得分
+    if image.description and query.lower() in image.description.lower():
+        score += 2.0
+
+    # 时间相关查询处理
+    if any(keyword in query for keyword in ['昨天', '今天', '最近']):
+        days_diff = (image.created_at - datetime.now()).days
+        if abs(days_diff) <= 7:
+            score += 1.5
+
+    return score
+\end{lstlisting}
+
+\subsection{MCP接口应用场景}
+
+MCP接口适用于以下场景：
+
+\begin{itemize}
+    \item \textbf{智能助手集成}：与ChatGPT、Claude等大模型集成
+    \item \textbf{自动化工作流}：在工作流中自动检索相关图片
+    \item \textbf{内容管理系统}：为CMS系统提供智能图片搜索能力
+    \item \textbf{开发者工具}：为开发者提供程序化图片检索接口
+\end{itemize}
+
+\newpage
+
 % 效果展示
 \section{系统效果展示}
 
-\subsection{用户界面展示}
+\subsection{用户认证与登录}
 
-\subsubsection{登录注册页面}
+\subsubsection{用户登录界面}
 
-系统提供了简洁美观的登录和注册界面，采用Material-UI设计规范，支持响应式布局。
-
-\begin{figure}[H]
-    \centering
-    \begin{tikzpicture}[
-        box/.style={rectangle, draw, fill=blue!10, text width=8cm, text centered, minimum height=5cm, rounded corners}
-    ]
-        \node[box] {
-            \textbf{登录页面}\\[0.5cm]
-            \begin{itemize}[leftmargin=*]
-                \item 用户名/密码输入框
-                \item 记住登录状态选项
-                \item 注册链接
-                \item Material-UI风格设计
-            \end{itemize}
-        };
-    \end{tikzpicture}
-    \caption{用户登录界面示意图}
-\end{figure}
-
-\subsubsection{图片上传界面}
-
-图片上传功能支持拖拽上传和点击选择两种方式，提供实时上传进度反馈。
+系统采用Material-UI设计规范，提供简洁直观的用户登录界面，支持用户名密码登录。
 
 \begin{figure}[H]
     \centering
-    \begin{tikzpicture}[
-        box/.style={rectangle, draw, fill=green!10, text width=8cm, text centered, minimum height=5cm, rounded corners}
-    ]
-        \node[box] {
-            \textbf{图片上传界面}\\[0.5cm]
-            \begin{itemize}[leftmargin=*]
-                \item 拖拽上传区域（虚线框）
-                \item 文件选择按钮
-                \item 上传进度条显示
-                \item 多文件同时上传支持
-                \item AI标签生成状态提示
-            \end{itemize}
-        };
-    \end{tikzpicture}
-    \caption{图片上传界面示意图}
+    \includegraphics[width=0.8\textwidth]{sign_in.png}
+    \caption{用户登录界面}
 \end{figure}
 
-\subsubsection{图片浏览界面}
+\subsubsection{登录成功状态}
 
-图片浏览采用网格布局，支持无限滚动加载，每张图片显示缩略图、文件名和标签信息。
+用户登录成功后，系统显示欢迎信息和用户状态，界面布局清晰，用户体验良好。
 
 \begin{figure}[H]
     \centering
-    \begin{tikzpicture}[
-        box/.style={rectangle, draw, fill=orange!10, text width=8cm, text centered, minimum height=5cm, rounded corners}
-    ]
-        \node[box] {
-            \textbf{图片浏览界面}\\[0.5cm]
-            \begin{itemize}[leftmargin=*]
-                \item 网格布局展示图片
-                \item 无限滚动加载
-                \item 标签筛选功能
-                \item 搜索功能
-                \item 批量选择操作
-            \end{itemize}
-        };
-    \end{tikzpicture}
-    \caption{图片浏览界面示意图}
+    \includegraphics[width=0.8\textwidth]{sign_in_success.png}
+    \caption{登录成功后的系统界面}
 \end{figure}
 
-\subsubsection{图片详情页面}
+\subsection{图片上传与管理}
 
-图片详情页面展示完整图片、EXIF信息、AI生成的描述和标签管理功能。
+\subsubsection{图片上传准备}
+
+系统提供直观的图片上传界面，支持拖拽和点击选择多种上传方式，界面设计简洁明了。
 
 \begin{figure}[H]
     \centering
-    \begin{tikzpicture}[
-        box/.style={rectangle, draw, fill=purple!10, text width=8cm, text centered, minimum height=5cm, rounded corners}
-    ]
-        \node[box] {
-            \textbf{图片详情页面}\\[0.5cm]
-            \begin{itemize}[leftmargin=*]
-                \item 大图预览
-                \item 文件信息（大小、尺寸、时间）
-                \item AI生成的描述（高亮显示）
-                \item 标签管理（添加/删除）
-                \item 编辑功能（裁剪、色彩调整）
-            \end{itemize}
-        };
-    \end{tikzpicture}
-    \caption{图片详情界面示意图}
+    \includegraphics[width=0.8\textwidth]{to_be_upload.png}
+    \caption{图片上传准备界面}
 \end{figure}
 
-\subsection{核心功能演示}
+\subsubsection{上传成功反馈}
 
-\subsubsection{批量操作功能}
-
-系统支持批量选择和批量删除功能，大大提升了图片管理效率。
+图片上传成功后，系统显示上传结果和图片信息，提供清晰的操作反馈。
 
 \begin{figure}[H]
     \centering
-    \begin{tikzpicture}[
-        box/.style={rectangle, draw, fill=cyan!10, text width=8cm, text centered, minimum height=4cm, rounded corners}
-    ]
-        \node[box] {
-            \textbf{批量操作界面}\\[0.5cm]
-            \begin{itemize}[leftmargin=*]
-                \item 全选/取消全选复选框
-                \item 每张图片的选择框
-                \item 批量删除按钮
-                \item 选中数量显示
-                \item 删除确认对话框
-            \end{itemize}
-        };
-    \end{tikzpicture}
-    \caption{批量操作功能示意图}
+    \includegraphics[width=0.8\textwidth]{up_load_success.png}
+    \caption{图片上传成功状态}
 \end{figure}
 
-\subsubsection{AI标签生成效果}
+\subsection{图片浏览与展示}
 
-上传图片后，系统自动调用Qwen3 VL API生成标签和描述，并在界面上清晰展示。
+\subsubsection{图片列表浏览}
 
-\begin{table}[H]
+系统采用网格布局展示用户上传的图片，支持分页浏览，每张图片显示缩略图和基本信息。
+
+\begin{figure}[H]
     \centering
-    \begin{tabularx}{\textwidth}{|X|X|}
-        \toprule
-        \textbf{图片内容} & \textbf{AI生成的标签和描述} \\
-        \midrule
-        风景照片 & 标签：风景, 自然, 山水, 蓝天, 白云 \\
-        & 描述：这是一幅美丽的自然风景照片，展现了壮丽的山川和蔚蓝的天空... \\
-        \midrule
-        人物照片 & 标签：人物, 肖像, 微笑, 室内, 光线 \\
-        & 描述：照片中的人物面带微笑，室内光线柔和，展现了温馨的氛围... \\
-        \midrule
-        动物照片 & 标签：动物, 宠物, 可爱, 毛茸茸, 玩耍 \\
-        & 描述：一只可爱的宠物正在玩耍，毛茸茸的外表非常讨人喜欢... \\
-        \bottomrule
-    \end{tabularx}
-    \caption{AI标签生成效果示例}
-\end{table}
+    \includegraphics[width=0.8\textwidth]{list image.png}
+    \caption{图片列表浏览界面}
+\end{figure}
+
+\subsubsection{图片详情查看}
+
+点击图片后可以查看完整图片信息，包括EXIF元数据、AI生成的标签和描述信息。
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{show_image.png}
+    \caption{图片详情展示页面}
+\end{figure}
+
+\subsection{批量操作功能}
+
+\subsubsection{图片删除操作}
+
+系统支持批量选择和删除图片功能，提供直观的删除确认界面，确保用户操作的安全性。
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{erase_image.png}
+    \caption{图片删除操作界面}
+\end{figure}
+
+\subsection{系统管理功能}
+
+\subsubsection{用户权限管理}
+
+管理员可以通过权限管理系统管理用户角色和访问权限，界面清晰易用。
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{权限管理.png}
+    \caption{用户权限管理系统}
+\end{figure}
+
+\subsubsection{系统配置管理}
+
+系统提供完整的配置管理界面，允许管理员调整系统参数和AI服务设置。
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{config.png}
+    \caption{系统配置管理界面}
+\end{figure}
+
+\subsection{部署与运维}
+
+\subsubsection{Docker容器管理}
+
+系统支持Docker容器化部署，管理员可以通过容器管理界面监控系统运行状态。
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{docker_ps.png}
+    \caption{Docker容器运行状态}
+\end{figure}
 
 \subsubsection{图片编辑功能}
 
-系统提供图片裁剪和色彩调整功能，所有编辑操作都会自动备份原始文件。
+系统提供完整的图片编辑功能，包括图片裁剪、色彩调整等操作，所有编辑操作都会自动备份原始文件，确保数据安全。
 
 \begin{figure}[H]
     \centering
-    \begin{tikzpicture}[
-        box/.style={rectangle, draw, fill=yellow!10, text width=8cm, text centered, minimum height=4cm, rounded corners}
-    ]
-        \node[box] {
-            \textbf{图片编辑功能}\\[0.5cm]
-            \begin{itemize}[leftmargin=*]
-                \item 图片裁剪（四边调整）
-                \item 亮度/对比度调整
-                \item 实时预览效果
-                \item 编辑历史记录
-                \item 一键恢复原图
-            \end{itemize}
-        };
-    \end{tikzpicture}
-    \caption{图片编辑功能示意图}
+    \begin{minipage}{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{剪切.png}
+        \caption{图片裁剪操作界面}
+    \end{minipage}
+    \hfill
+    \begin{minipage}{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{剪切成功.png}
+        \caption{裁剪完成后的效果}
+    \end{minipage}
+\end{figure}
+
+\subsubsection{图片筛选功能}
+
+系统支持多种图片筛选方式，用户可以根据标签、上传时间等多种条件快速找到需要的图片。
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{filter.png}
+    \caption{图片筛选功能界面}
 \end{figure}
 
 \subsection{系统管理界面}
@@ -1171,219 +2138,155 @@ docker-compose down
 
 \begin{figure}[H]
     \centering
-    \begin{tikzpicture}[
-        box/.style={rectangle, draw, fill=red!10, text width=8cm, text centered, minimum height=4cm, rounded corners}
-    ]
-        \node[box] {
-            \textbf{用户管理界面}\\[0.5cm]
-            \begin{itemize}[leftmargin=*]
-                \item 用户列表表格
-                \item 用户状态显示（pending/user/admin）
-                \item 审批按钮
-                \item 角色修改功能
-                \item 用户统计信息
-            \end{itemize}
-        };
-    \end{tikzpicture}
-    \caption{用户管理界面示意图}
+    \begin{minipage}{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{权限管理.png}
+        \caption{用户管理界面}
+    \end{minipage}
+    \hfill
+    \begin{minipage}{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{config.png}
+        \caption{系统配置界面}
+    \end{minipage}
 \end{figure}
 
 \subsubsection{系统配置界面}
 
 系统配置界面允许管理员配置AI服务参数、存储路径等系统设置。
 
+
+\subsection{项目结构}
+
 \begin{figure}[H]
     \centering
     \begin{tikzpicture}[
-        box/.style={rectangle, draw, fill=teal!10, text width=8cm, text centered, minimum height=4cm, rounded corners}
+        folder/.style={rectangle, draw, fill=blue!15, text width=3cm, text centered, minimum height=0.9cm, rounded corners, font=\small},
+        file/.style={rectangle, draw, fill=green!15, text width=2.8cm, text centered, minimum height=0.7cm, rounded corners, font=\footnotesize},
+        every edge/.style={draw, ->, >=stealth, thick, shorten >=2pt, shorten <=2pt}
     ]
-        \node[box] {
-            \textbf{系统配置界面}\\[0.5cm]
-            \begin{itemize}[leftmargin=*]
-                \item Qwen API配置
-                \item 存储路径设置
-                \item 缩略图大小配置
-                \item API连接验证功能
-                \item 配置保存和验证
-            \end{itemize}
-        };
+
+    % 根目录
+    \node[folder] (root) at (0,0) {\textbf{BSall/}};
+
+    % 第一级目录 - 重新排列，更宽松
+    \node[folder] (backend) at (-6,-3) {backend/};
+    \node[folder] (frontend) at (-2,-3) {frontend/};
+    \node[folder] (data) at (2,-3) {data/};
+    \node[folder] (uploads) at (6,-3) {uploads/};
+    \node[folder] (backups) at (-4,-6) {backups/};
+    \node[folder] (scripts) at (0,-6) {scripts/};
+    \node[folder] (config) at (4,-6) {其他配置};
+
+    % 连接根目录到第一级目录
+    \draw (root) -- (backend);
+    \draw (root) -- (frontend);
+    \draw (root) -- (data);
+    \draw (root) -- (uploads);
+    \draw (root) -- (backups);
+    \draw (root) -- (scripts);
+    \draw (root) -- (config);
+
+    % 后端文件 - 分散排列
+    \node[file] at (-6,-5) {app.py};
+    \node[file] at (-6,-6.5) {config.py};
+    \node[file] at (-6,-8) {database.py};
+    \node[file] at (-6,-9.5) {qwen\_client.py};
+    \draw[dashed, shorten >=5pt] (backend) -- (-6,-5);
+    \draw[dashed, shorten >=5pt] (backend) -- (-6,-6.5);
+    \draw[dashed, shorten >=5pt] (backend) -- (-6,-8);
+    \draw[dashed, shorten >=5pt] (backend) -- (-6,-9.5);
+
+    % 前端文件 - 分散排列
+    \node[file] at (-2,-5) {App.tsx};
+    \node[file] at (-2,-6.5) {main.tsx};
+    \node[file] at (-2,-8) {api.ts};
+    \draw[dashed, shorten >=5pt] (frontend) -- (-2,-5);
+    \draw[dashed, shorten >=5pt] (frontend) -- (-2,-6.5);
+    \draw[dashed, shorten >=5pt] (frontend) -- (-2,-8);
+
+    % 数据文件
+    \node[file] at (2,-5) {image\_manager.db};
+    \draw[dashed, shorten >=5pt] (data) -- (2,-5);
+
+    % 脚本文件
+    \node[file] at (0,-8) {run\_backend.py};
+    \draw[dashed, shorten >=5pt] (scripts) -- (0,-8);
+
+    % 配置文件
+    \node[file] at (4,-8) {config.yaml};
+    \node[file] at (4,-9.5) {requirements.txt};
+    \draw[dashed, shorten >=5pt] (config) -- (4,-8);
+    \draw[dashed, shorten >=5pt] (config) -- (4,-9.5);
+
+    % 图例 - 移到右侧
+    \node[font=\footnotesize, anchor=north east] at (7,-10) {
+        \begin{tabular}{@{}ll@{}}
+            \rule{0.5cm}{0.3cm} & 目录文件夹 \\
+            \rule{0.5cm}{0.3cm} & 重要文件 \\
+            \rule{0.3cm}{0.1cm} & 包含关系 \\
+            \rule[0.05cm]{0.3cm}{0.02cm}\rule[0.05cm]{0.05cm}{0.02cm}\rule[0.05cm]{0.05cm}{0.02cm} & 文件关系
+        \end{tabular}
+    };
+
     \end{tikzpicture}
-    \caption{系统配置界面示意图}
+    \caption{项目目录结构图}
 \end{figure}
 
-\subsection{响应式设计展示}
+\subsubsection{后端模块结构}
 
-系统采用响应式设计，能够适配不同屏幕尺寸的设备。
+\begin{lstlisting}[language=Python,caption=后端主要模块说明]
+backend/
+├── app.py              # Flask应用工厂和路由配置
+├── config.py           # 配置管理类
+├── database.py         # 数据库连接和会话管理
+├── qwen_client.py      # 通义千问AI服务客户端
+├── utils.py            # 工具函数
+├── auth.py             # JWT认证中间件
+└── controllers/        # 控制器模块
+    ├── auth_controller.py     # 用户认证API
+    ├── image_controller.py    # 图片管理API
+    ├── tag_controller.py      # 标签管理API
+    ├── user_controller.py     # 用户管理API
+    └── config_controller.py   # 系统配置API
+\end{lstlisting}
 
-\begin{table}[H]
-    \centering
-    \begin{tabularx}{\textwidth}{|X|X|X|}
-        \toprule
-        \textbf{设备类型} & \textbf{布局特点} & \textbf{功能支持} \\
-        \midrule
-        桌面端（$> 1200px$） & 多列网格布局，侧边栏导航 & 完整功能，批量操作 \\
-        \midrule
-        平板端（$768px - 1200px$） & 双列网格布局，底部导航 & 完整功能，触摸优化 \\
-        \midrule
-        移动端（$< 768px$） & 单列布局，底部导航栏 & 核心功能，简化操作 \\
-        \bottomrule
-    \end{tabularx}
-    \caption{响应式设计适配方案}
-\end{table}
+\subsubsection{前端模块结构}
 
-\subsection{用户体验亮点}
+\begin{lstlisting}[language=JavaScript,caption=前端主要模块说明]
+frontend/
+├── src/
+│   ├── main.tsx        # React应用入口
+│   ├── App.tsx         # 主应用组件
+│   ├── index.css       # 全局样式
+│   ├── contexts/       # React上下文
+│   │   └── AuthContext.tsx    # 认证上下文
+│   ├── pages/          # 页面组件
+│   │   ├── Login.tsx         # 登录页面
+│   │   ├── Register.tsx      # 注册页面
+│   │   ├── Gallery.tsx       # 图片画廊
+│   │   ├── Upload.tsx        # 上传页面
+│   │   ├── ImageDetail.tsx   # 图片详情
+│   │   ├── Admin.tsx         # 管理员页面
+│   │   ├── Settings.tsx      # 设置页面
+│   │   └── ...
+│   └── services/       # API服务层
+│       └── api.ts      # API客户端
+├── package.json        # 前端依赖配置
+├── tsconfig.json       # TypeScript配置
+└── vite.config.ts      # Vite构建配置
+\end{lstlisting}
 
-\subsubsection{交互体验}
-
-\begin{itemize}
-    \item \textbf{拖拽上传}：直观的拖拽操作，支持多文件同时上传
-    \item \textbf{无限滚动}：流畅的图片加载体验，无需手动翻页
-    \item \textbf{实时反馈}：上传进度、操作提示、错误信息实时显示
-    \item \textbf{批量操作}：高效的批量选择和删除功能
-    \item \textbf{智能提示}：AI标签和描述自动生成，减少用户操作
-\end{itemize}
-
-\subsubsection{视觉设计}
-
-\begin{itemize}
-    \item \textbf{Material Design}：采用Material-UI设计规范，界面美观统一
-    \item \textbf{色彩搭配}：合理的色彩使用，突出重点信息
-    \item \textbf{图标系统}：丰富的图标库，提升界面可读性
-    \item \textbf{动画效果}：流畅的过渡动画，提升用户体验
-    \item \textbf{加载状态}：清晰的加载指示器，避免用户等待焦虑
-\end{itemize}
 
 \newpage
 
 % 结论
-\section{结论}
+\section{总结}
 
-\subsection{项目成果}
+本次图片管理系统开发项目圆满完成，实现了完整的用户管理、图片处理、AI智能标签生成功能。系统采用前后端分离架构，集成现代Web技术栈，具有良好的用户体验和系统性能。
 
-本次开发的图片管理系统成功实现了预期的所有功能，具备以下特点：
+同时在项目开发过程中，我第一次尝试了AI服务集成，利用qwen-vl进行分析，积累了宝贵的技术开发和项目管理经验。
 
-\subsubsection{功能完整性}
-
-\begin{itemize}
-    \item 完整的用户管理系统，支持注册、登录、权限管理
-    \item 强大的图片处理能力，支持多种格式和批量操作
-    \item 智能的AI标签生成功能，提升用户体验
-    \item 现代化的Web界面，响应式设计适配各种设备
-    \item 完善的REST API，便于第三方集成
-\end{itemize}
-
-\subsubsection{技术先进性}
-
-\begin{itemize}
-    \item 采用前后端分离架构，提高开发效率和维护性
-    \item 使用现代Web技术栈（React + TypeScript + Flask）
-    \item 集成AI技术，提供智能标签生成服务
-    \item 支持容器化部署，简化运维工作
-\end{itemize}
-
-\subsubsection{用户体验}
-
-\begin{itemize}
-    \item 直观的拖拽上传界面
-    \item 流畅的图片浏览体验
-    \item 智能的搜索和筛选功能
-    \item 实时的进度提示和错误反馈
-\end{itemize}
-
-\subsection{技术亮点}
-
-\subsubsection{AI集成}
-
-系统成功集成了通义千问Qwen VL模型，实现图片的智能分析和标签自动生成。这不仅提升了用户的使用体验，也展示了AI技术在传统Web应用中的实际应用价值。
-
-\subsubsection{架构设计}
-
-采用前后端分离的架构设计，使得前端和后端可以独立开发和部署，提高了系统的可维护性和扩展性。
-
-\subsubsection{安全性考虑}
-
-\begin{itemize}
-    \item 使用JWT进行身份验证
-    \item 密码采用bcrypt哈希存储
-    \item 文件上传进行严格的类型和大小验证
-    \item 实现基于角色的访问控制
-\end{itemize}
-
-\subsection{项目经验}
-
-通过本次项目开发，获得了以下宝贵经验：
-
-\subsubsection{技术选型}
-
-\begin{enumerate}
-    \item 选择成熟稳定的技术栈可以显著降低开发风险
-    \item 合理评估新技术引入的成本和收益
-    \item 重视社区支持和文档完整性
-\end{enumerate}
-
-\subsubsection{架构设计}
-
-\begin{enumerate}
-    \item 前后端分离可以提高开发效率和系统可维护性
-    \item 合理的抽象和模块化设计有利于代码复用
-    \item 考虑系统的可扩展性和性能需求
-\end{enumerate}
-
-\subsubsection{项目管理}
-
-\begin{enumerate}
-    \item 制定详细的项目计划和里程碑
-    \item 重视代码质量和测试覆盖率
-    \item 及时发现和解决问题，避免技术债务积累
-\end{enumerate}
-
-\subsection{未来展望}
-
-\subsubsection{功能扩展}
-
-\begin{enumerate}
-    \item 增加图片批处理功能（如批量重命名、格式转换）
-    \item 实现图片版本管理，支持历史版本回溯
-    \item 添加图片分享和协作功能
-    \item 集成更多的AI功能（如图像识别、风格迁移）
-\end{enumerate}
-
-\subsubsection{技术优化}
-
-\begin{enumerate}
-    \item 考虑使用CDN加速图片访问
-    \item 实现分布式存储支持
-    \item 添加缓存机制提升性能
-    \item 考虑微服务架构改造
-\end{enumerate}
-
-\subsubsection{部署优化}
-
-\begin{enumerate}
-    \item 支持Kubernetes集群部署
-    \item 实现CI/CD自动化流水线
-    \item 添加监控和日志收集系统
-    \item 实现自动备份和恢复机制
-\end{enumerate}
-
-\subsection{总结}
-
-本次图片管理系统开发项目圆满完成，实现了预期的全部目标。系统不仅功能完整、技术先进，而且具有良好的用户体验和扩展性。通过这个项目，我们不仅掌握了现代Web开发的技术栈和最佳实践，也积累了宝贵的项目管理和团队协作经验。
-
-未来将继续完善和优化系统，为用户提供更好的图片管理体验。
-
-\newpage
-
-% 参考文献
-\section*{参考文献}
-
-\begin{enumerate}
-    \item Flask官方文档：\url{https://flask.palletsprojects.com/}
-    \item React官方文档：\url{https://reactjs.org/}
-    \item SQLAlchemy文档：\url{https://sqlalchemy.org/}
-    \item Material-UI文档：\url{https://mui.com/}
-    \item 通义千问API文档：\url{https://dashscope.aliyuncs.com/}
-    \item JWT RFC 7519：\url{https://tools.ietf.org/html/rfc7519}
-\end{enumerate}
 
 \end{document}
+%%%%%%%%%% 结束 %%%%%%%%%%
