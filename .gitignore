@@ -67,5 +67,8 @@ Thumbs.db
 create_admin.py
 *.tmp
 
-
-
+# tex
+*.toc
+*.aux
+*.log
+*.synctex.gz
